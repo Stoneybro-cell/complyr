@@ -27,7 +27,7 @@ const formatCurrency = (amount?: string, token?: string) => {
         }
     }
 
-    return `${Number(formatted).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${token || 'MNT'}`;
+    return `${Number(formatted).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${token || 'FLOW'}`;
 };
 
 export const TransactionItem = ({ item }: { item: TransactionItemProps }) => {
@@ -75,7 +75,7 @@ export const TransactionItem = ({ item }: { item: TransactionItemProps }) => {
                         <div>
                             <span className="text-muted-foreground block text-[10px] uppercase tracking-wider mb-0.5">Tx Hash</span>
                             <a
-                                href={`https://explorer.testnet.mantle.xyz/tx/${item.id.split('-')[0]}`}
+                                href={`https://evm-testnet.flowscan.io/tx/${item.id.split('-')[0]}`}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="text-primary hover:text-primary/80 truncate block underline text-xs font-mono"
@@ -154,7 +154,7 @@ export const TransactionItem = ({ item }: { item: TransactionItemProps }) => {
                                                         <span className="font-mono text-muted-foreground">
                                                             {(c.recipient || c.target)?.slice(0, 6)}...{(c.recipient || c.target)?.slice(-4)}
                                                         </span>
-                                                        <span className="font-medium">{formatCurrency(c.value, 'MNT')}</span>
+                                                        <span className="font-medium">{formatCurrency(c.value, 'FLOW')}</span>
                                                     </div>
                                                 ))
                                             )}

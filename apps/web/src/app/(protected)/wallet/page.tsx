@@ -49,7 +49,7 @@ export default function Page() {
         </header>
         <div className="flex  flex-1 flex-col gap-4 p-4">
           <div className="h-full w-full">
-            <Tabs defaultValue="chat" className="h-full w-full">
+            <Tabs defaultValue="form" className="h-full w-full">
               <TabsList className="flex justify-center mx-auto">
                 <TabsTrigger value="form">Form</TabsTrigger>
                 <TabsTrigger value="dashboard">Dashboard</TabsTrigger>

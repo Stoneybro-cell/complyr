@@ -28,7 +28,7 @@ export function useRecurringPayment(availableEthBalance?: string) {
                     const balanceCheck = checkSufficientBalance({
                         availableBalance: availableEthBalance,
                         requiredAmount: totalCommitment,
-                        token: "MNT"
+                        token: "FLOW"
                     });
 
                     if (!balanceCheck.sufficient) {
@@ -50,7 +50,7 @@ export function useRecurringPayment(availableEthBalance?: string) {
                     abi: MpIntentRegistryABI,
                     functionName: "createIntent",
                     args: [
-                        zeroAddress, // MNT (native token)
+                        zeroAddress, // FLOW (native token)
                         params.name,
                         params.recipients,
                         amountsInWei,
@@ -82,10 +82,10 @@ export function useRecurringPayment(availableEthBalance?: string) {
                     hash,
                 });
 
-                toast.success("Recurring MNT payment intent created successfully!");
+                toast.success("Recurring FLOW payment intent created successfully!");
                 return receipt;
             } catch (error) {
-                console.error("Error creating recurring MNT payment intent:", error);
+                console.error("Error creating recurring FLOW payment intent:", error);
                 const errorMessage = error instanceof Error ? error.message : "Failed to create recurring payment intent";
                 toast.error(errorMessage);
                 throw error;

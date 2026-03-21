@@ -43,7 +43,7 @@ export function BalanceCards({ availableMpToken = "0", committedMpToken = "0", i
         <CardHeader>
           <CardDescription>Total Balance</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {isLoading ? <Skeleton className="h-8 w-24" /> : `${formatBalance(safeTotal)} MNT`}
+            {isLoading ? <Skeleton className="h-8 w-24" /> : `${formatBalance(safeTotal)} FLOW`}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
@@ -64,7 +64,7 @@ export function BalanceCards({ availableMpToken = "0", committedMpToken = "0", i
         <CardHeader>
           <CardDescription>Reserved Balance</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {isLoading ? <Skeleton className="h-8 w-24" /> : `${formatBalance(committedMpToken)} MNT`}
+            {isLoading ? <Skeleton className="h-8 w-24" /> : `${formatBalance(committedMpToken)} FLOW`}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
@@ -85,7 +85,7 @@ export function BalanceCards({ availableMpToken = "0", committedMpToken = "0", i
         <CardHeader>
           <CardDescription>Available Balance</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {isLoading ? <Skeleton className="h-8 w-24" /> : `${formatBalance(availableMpToken)} MNT`}
+            {isLoading ? <Skeleton className="h-8 w-24" /> : `${formatBalance(availableMpToken)} FLOW`}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">

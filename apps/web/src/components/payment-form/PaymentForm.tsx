@@ -423,7 +423,7 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="single-amount">Amount (MNT)</Label>
+                                        <Label htmlFor="single-amount">Amount (FLOW)</Label>
                                         <Input
                                             id="single-amount"
                                             type="number"

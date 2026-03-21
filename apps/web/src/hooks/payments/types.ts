@@ -22,7 +22,7 @@ export type PayrollMetadata = ComplianceMetadata;
 export type BalanceCheckParams = {
     availableBalance: string;
     requiredAmount: string;
-    token: "MNT";
+    token: "FLOW";
 };
 
 export type SingleTransferParams = {

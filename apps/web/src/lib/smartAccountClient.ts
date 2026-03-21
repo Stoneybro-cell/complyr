@@ -1,6 +1,6 @@
 import { createSmartAccountClient } from "permissionless";
 import { http } from "viem";
-import { mantleSepoliaTestnet } from "viem/chains";
+import { flowTestnet } from "viem/chains";
 import { pimlicoClient, pimlicoBundlerUrl, publicClient } from "./pimlico";
 import { CustomSmartAccount } from "./customSmartAccount";
 
@@ -10,7 +10,7 @@ export async function getSmartAccountClient(
 ) {
   return createSmartAccountClient({
     account: customSmartAccount,
-    chain: mantleSepoliaTestnet,
+    chain: flowTestnet,
     client: publicClient,
     bundlerTransport: http(pimlicoBundlerUrl),
     paymaster: pimlicoClient,

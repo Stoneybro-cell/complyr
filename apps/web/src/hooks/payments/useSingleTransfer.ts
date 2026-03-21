@@ -22,7 +22,7 @@ export function useSingleTransfer(availableEthBalance?: string) {
                     const balanceCheck = checkSufficientBalance({
                         availableBalance: availableEthBalance,
                         requiredAmount: params.amount,
-                        token: "MNT"
+                        token: "FLOW"
                     });
 
                     if (!balanceCheck.sufficient) {
@@ -90,10 +90,10 @@ export function useSingleTransfer(availableEthBalance?: string) {
                     hash,
                 });
 
-                toast.success("MNT transfer sent successfully!");
+                toast.success("FLOW transfer sent successfully!");
                 return receipt;
             } catch (error) {
-                console.error("Error sending MNT transfer:", error);
+                console.error("Error sending FLOW transfer:", error);
                 const errorMessage = error instanceof Error ? error.message : "Failed to send transfer";
                 toast.error(errorMessage);
                 throw error;

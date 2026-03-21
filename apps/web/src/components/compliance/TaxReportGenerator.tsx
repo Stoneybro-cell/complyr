@@ -164,7 +164,7 @@ export function TaxReportGenerator({ data }: TaxReportGeneratorProps) {
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="font-semibold text-sm">Preview: {filteredData.length} records found</h3>
                         <span className="text-sm font-mono font-medium">
-                            Total: {totalAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })} MNT
+                            Total: {totalAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })} FLOW
                         </span>
                     </div>
 

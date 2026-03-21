@@ -63,7 +63,7 @@ export function AuditTrail({ data }: AuditTrailProps) {
                                     </div>
                                     <div>
                                         <div className="text-xs text-muted-foreground uppercase tracking-wider">Total Value</div>
-                                        <div className="text-2xl font-bold">{totalPaid.toLocaleString()} MNT</div>
+                                        <div className="text-2xl font-bold">{totalPaid.toLocaleString()} FLOW</div>
                                     </div>
                                     <div>
                                         <div className="text-xs text-muted-foreground uppercase tracking-wider">Status</div>
@@ -89,10 +89,10 @@ export function AuditTrail({ data }: AuditTrailProps) {
                                             </div>
                                             <div className="text-right">
                                                 <div className="font-bold text-sm">
-                                                    {(Number(item.amount) / 1e18).toLocaleString()} MNT
+                                                    {(Number(item.amount) / 1e18).toLocaleString()} FLOW
                                                 </div>
                                                 <a
-                                                    href={`https://explorer.testnet.mantle.xyz/tx/${item.txHash}`}
+                                                    href={`https://evm-testnet.flowscan.io/tx/${item.txHash}`}
                                                     target="_blank"
                                                     rel="noreferrer"
                                                     className="text-[10px] text-primary hover:underline flex items-center justify-end gap-1"

@@ -89,8 +89,8 @@ export function WalletOverview({ walletAddress }: WalletOverviewProps) {
                     </Button>
                 </div>
                 <BalanceCards
-                    availableMpToken={wallet?.availableMntBalance}
-                    committedMpToken={wallet?.committedMntBalance}
+                    availableMpToken={wallet?.availableFlowBalance}
+                    committedMpToken={wallet?.committedFlowBalance}
                     isLoading={walletIsLoading}
                 />
             </div>
