@@ -3,11 +3,11 @@ import { AppSidebar } from "@/components/wallet/app-sidebar";
 import { Dashboard } from "@/components/dashboard/dashboard";
 import { ComplianceDashboard } from "@/components/compliance/ComplianceDashboard";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import Chat from "@/components/chat/chat";
+
 import { PaymentForm } from "@/components/payment-form/PaymentForm";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { generateId } from "ai";
+
 import { Separator } from "@radix-ui/react-separator";
 import Image from "next/image";
 import {
@@ -27,14 +27,9 @@ export default function Page() {
     if (saved) setWalletAddress(saved as `0x${string}`);
   }, []);
 
-  const chatId = searchParams.get("chatId");
 
-  useEffect(() => {
-    if (!chatId) {
-      const newId = generateId();
-      router.replace(`/wallet?chatId=${newId}`, { scroll: false });
-    }
-  }, [chatId, router]);
+
+
 
   return (
     <SidebarProvider
@@ -62,10 +57,7 @@ export default function Page() {
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
               </TabsList>
               <TabsContent value="chat">
-                <Chat
-                  walletAddress={walletAddress}
-                  id={chatId || undefined}
-                />
+
               </TabsContent>
               <TabsContent value="form">
                 <PaymentForm walletAddress={walletAddress} />

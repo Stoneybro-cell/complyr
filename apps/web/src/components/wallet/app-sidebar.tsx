@@ -25,10 +25,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { generateId } from "ai";
+
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChatList } from "./sidebar/chat-list";
+
 import { TransactionList } from "@/components/transaction-history/TransactionList";
 import { ContactList } from "@/components/contacts/ContactList";
 
@@ -72,61 +72,11 @@ export function AppSidebar({
 }: AppSidebarProps & React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentChatId = searchParams.get("chatId");
+
   const queryClient = useQueryClient();
   const [activeItem, setActiveItem] = React.useState(data.navMain[0]);
   const [showContactForm, setShowContactForm] = React.useState(false);
 
-  const { data: chats = [], isLoading } = useQuery({
-    queryKey: ["chats", walletAddress],
-    queryFn: async () => {
-      if (!walletAddress) return [];
-      const response = await fetch(`/api/chats?userId=${walletAddress}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch chats");
-      }
-      const data = await response.json();
-      return data.chats as Chat[];
-    },
-    enabled: !!walletAddress,
-    staleTime: 5 * 60 * 1000, // 5 minutes - data stays fresh
-    gcTime: 10 * 60 * 1000, // 10 minutes - cache persists even when unmounted
-  });
-
-  const handleNewChat = () => {
-    const newChatId = generateId();
-    router.replace(`/wallet?chatId=${newChatId}`);
-  };
-
-  const handleSelectChat = (chatId: string) => {
-    router.push(`/wallet?chatId=${chatId}`);
-  };
-
-  const handleDeleteChat = async (chatId: string) => {
-    try {
-      const response = await fetch(`/api/chat/${chatId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete chat");
-      }
-
-      toast.success("Chat deleted");
-      queryClient.invalidateQueries({ queryKey: ["chats", walletAddress] });
-
-      if (chatId === currentChatId) {
-        handleNewChat();
-      }
-    } catch (error) {
-      console.error("Error deleting chat:", error);
-      toast.error("Failed to delete chat");
-    }
-  };
-
-  const handleRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ["chats", walletAddress] });
-  };
 
   const { logout } = useLogout({
     onSuccess: () => {
@@ -191,15 +141,7 @@ export function AppSidebar({
             <div className="text-foreground text-xl font-medium">
               {activeItem?.title}
             </div>
-            {activeItem.title === "Chats" && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleNewChat}
-              >
-                + New Chat
-              </Button>
-            )}
+            
             {activeItem.title === "Contacts" && (
               <Button
                 variant="outline"
@@ -212,17 +154,7 @@ export function AppSidebar({
           </div>
         </SidebarHeader>
         <SidebarContent>
-          {activeItem.title === "Chats" ? (
-            <ChatList
-              chats={chats}
-              isLoading={isLoading}
-              currentChatId={currentChatId}
-              onSelectChat={handleSelectChat}
-              onDeleteChat={handleDeleteChat}
-              onNewChat={handleNewChat}
-              onRefresh={handleRefresh}
-            />
-          ) : activeItem.title === "Transactions" ? (
+          { activeItem.title === "Transactions" ? (
             <TransactionList walletAddress={walletAddress} />
           ) : (
             <ContactList
