@@ -1,32 +1,31 @@
-import { Button } from "@/components/ui/button";
-import { Zap, DollarSign, Fuel, Shield } from "lucide-react";
-import Link from "next/link";
+import { Zap, DollarSign, Lock, Shield } from "lucide-react";
 
 const benefits = [
-  { icon: Zap, text: "Ultra-low fees (under $1 for 50-person payroll)" },
-  { icon: DollarSign, text: "Fast finality (seconds)" },
-  { icon: Fuel, text: "EVM compatible" },
-  { icon: Shield, text: "Secured by Ethereum + Mantle DA" },
+  { icon: Zap, text: "Fast finality with low fees on Flow EVM" },
+  { icon: DollarSign, text: "Gasless payments for recipients via paymaster" },
+  { icon: Lock, text: "FHE encryption via Zama fhEVM on Sepolia" },
+  { icon: Shield, text: "Non-custodial — employer retains full key control" },
 ];
 
 const integrationBenefits = [
-  "Predictable payroll costs regardless of team size",
-  "Efficient batch processing for global teams",
-  "Built-in compliance tracking at infrastructure level",
-  "Audit-ready transaction history on Mantle Explorer",
+  "Flow EVM handles payment execution — scheduling, automation, recipient transfers",
+  "Zama fhEVM stores encrypted compliance metadata — salary, jurisdiction, tax category",
+  "A compliance record ID links the two chains for every payroll intent",
+  "Employers grant selective decrypt access per record, per authorized address",
 ];
 
-export default function MantleChain() {
+export default function TechStack() {
   return (
     <section className="py-20 md:py-28 lg:py-32 bg-secondary">
       <div className="max-w-6xl mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           <div>
             <h2 className="text-3xl md:text-4xl font-semibold leading-tight tracking-tight">
-              Powered by Mantle Network's infrastructure for real-world finance
+              Two chains, one payroll workflow
             </h2>
             <p className="text-base md:text-lg leading-relaxed text-muted-foreground mt-4">
-              MantlePay leverages Mantle's low-cost, high-performance L2 to make compliant global payroll economically viable for businesses of any size.
+              Complyr runs across Flow EVM for payment execution and Zama's fhEVM for
+              confidential compliance storage. Each chain does what it's best at.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
@@ -42,7 +41,7 @@ export default function MantleChain() {
           </div>
 
           <div className="bg-background rounded-lg p-8 border border-border">
-            <h3 className="text-xl md:text-2xl font-semibold leading-tight">Integration Benefits</h3>
+            <h3 className="text-xl md:text-2xl font-semibold leading-tight">How the two layers connect</h3>
             <ul className="mt-6 space-y-4">
               {integrationBenefits.map((benefit, index) => (
                 <li key={index} className="flex items-start gap-3 text-muted-foreground">

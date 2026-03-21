@@ -2,22 +2,22 @@ const steps = [
   {
     number: "01",
     title: "Define",
-    description: "User specifies payment details with jurisdiction and tax data",
+    description: "Set recipients, amounts, schedule, jurisdiction, and tax category via the payment form.",
   },
   {
     number: "02",
-    title: "Generate",
-    description: "MantlePay creates ERC-4337 UserOperation with compliance metadata",
+    title: "Encrypt",
+    description: "Sensitive fields are encrypted on Zama fhEVM. A record ID links to the payment intent.",
   },
   {
     number: "03",
     title: "Commit",
-    description: "Smart contract locks funds and records jurisdiction tags",
+    description: "Smart contract on Flow EVM locks funds and schedules the payment sequence.",
   },
   {
     number: "04",
     title: "Execute",
-    description: "Chainlink Automation triggers payments with immutable data",
+    description: "Payments run automatically each cycle. Compliance record persists encrypted on-chain.",
   },
 ];
 
@@ -25,7 +25,9 @@ export default function HowItWorks() {
   return (
     <section id="how-it-works" className="py-20 md:py-28 lg:py-32 border-t border-border">
       <div className="max-w-6xl mx-auto px-6">
-        <h2 className="text-3xl md:text-4xl font-semibold leading-tight tracking-tight">How MantlePay delivers compliant global payroll</h2>
+        <h2 className="text-3xl md:text-4xl font-semibold leading-tight tracking-tight">
+          How Complyr runs private automated payroll
+        </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12">
           {steps.map((step, index) => (
@@ -42,9 +44,9 @@ export default function HowItWorks() {
         </div>
 
         <div className="mt-12 flex gap-2 text-sm text-muted-foreground">
-          <span>Simple.</span>
+          <span>Private.</span>
           <span>Compliant.</span>
-          <span>Trustless.</span>
+          <span>Automated.</span>
         </div>
       </div>
     </section>

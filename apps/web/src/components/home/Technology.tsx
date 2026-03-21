@@ -1,24 +1,46 @@
 export default function Technology() {
   const layers = [
     {
-      title: 'Interface Layer',
-      items: ['AI-driven intent parsing with compliance extraction', 'Natural language to structured, jurisdiction-aware payment logic'],
+      title: 'Execution layer — Flow EVM',
+      items: [
+        'ERC-4337 smart accounts with gasless paymaster — recipients never pay gas',
+        'MpIntentRegistry: on-chain payment scheduler with commitment tracking',
+        'Keeper automation triggers each payment cycle',
+        'Contracts written in Solidity 0.8.28, deployed to Flow EVM testnet',
+      ],
+    },
+    {
+      title: 'Privacy layer — Zama fhEVM',
+      items: [
+        'MpConfidentialPayroll.sol: stores encrypted salary (euint64), jurisdiction (euint8), category (euint8)',
+        'Zama TFHE library for on-chain FHE operations',
+        'ACL-based access control: employers grant selective decrypt per record per address',
+        'Deployed to Zama Sepolia testnet; record ID stored alongside Flow intent',
+      ],
     },
     {
       title: 'Authentication',
-      items: ['Embedded wallets via Privy (email/social login)', 'No seed phrases or crypto complexity for end users'],
+      items: [
+        'Privy embedded wallets — email and social login, no seed phrases for end users',
+        'Deterministic smart account addresses via ERC-1167 minimal proxy factory',
+        'One smart account per user, deployed on first use',
+      ],
     },
     {
-      title: 'Smart Accounts',
-      items: ['ERC-4337 compliant with compliance metadata', 'Batch execution with per-recipient jurisdiction tagging', 'Gas sponsorship', 'Built with Foundry'],
+      title: 'Indexing and data',
+      items: [
+        'Envio HyperIndex for real-time transaction history on Flow EVM',
+        'GraphQL API for compliance dashboard queries',
+        'Neon Postgres + Drizzle ORM for contact and reference data',
+      ],
     },
     {
-      title: 'Automation',
-      items: ['On-chain intent registry with compliance preservation', 'Chainlink Automation for decentralized execution', 'No centralized servers or custody'],
-    },
-    {
-      title: 'Compliance Infrastructure',
-      items: ['Universal metadata schema for multiple jurisdictions', 'Built-in category taxonomy (W2, 1099, contractor, invoice, vendor, grant)', 'Real-time dashboard and export capabilities'],
+      title: 'Frontend',
+      items: [
+        'Next.js 16 App Router, Tailwind CSS v4, Shadcn UI',
+        'Viem + Permissionless.js for AA transaction construction',
+        'TanStack Query for server state, Sonner for toast notifications',
+      ],
     },
   ];
 
@@ -26,7 +48,7 @@ export default function Technology() {
     <section id="technology" className="py-20 px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-4xl font-semibold text-gray-900 mb-16">
-          Built on modern Web3 infrastructure
+          Built on production-grade Web3 infrastructure
         </h2>
 
         <div className="space-y-12">
@@ -40,7 +62,7 @@ export default function Technology() {
                   <ul className="space-y-3">
                     {layer.items.map((item, i) => (
                       <li key={i} className="flex items-start">
-                        <span className="mr-3 mt-1.5 w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0"></span>
+                        <span className="mr-3 mt-1.5 w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0" />
                         <span className="text-gray-700">{item}</span>
                       </li>
                     ))}

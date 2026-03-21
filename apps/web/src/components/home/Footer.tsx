@@ -4,9 +4,9 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto">
         <div className="grid md:grid-cols-12 gap-12 mb-12">
           <div className="md:col-span-4">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">MantlePay</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">complyr</h3>
             <p className="text-sm text-gray-600 leading-relaxed">
-              Compliant financial infrastructure for global businesses operating on-chain.
+              Private, compliant, automated payroll for global teams — built on Flow EVM and Zama fhEVM.
             </p>
           </div>
 
@@ -20,33 +20,48 @@ export default function Footer() {
               </li>
               <li>
                 <a href="#how-it-works" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  How it Works
+                  How It Works
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  Use Cases
+                <a href="#technology" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  Technology
                 </a>
               </li>
             </ul>
           </div>
 
           <div className="md:col-span-3">
-            <h4 className="text-sm font-semibold text-gray-900 mb-4">Ecosystem</h4>
+            <h4 className="text-sm font-semibold text-gray-900 mb-4">Built with</h4>
             <ul className="space-y-3">
               <li>
-                <a href="https://mantle.xyz" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  Mantle Network
+                <a
+                  href="https://flow.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  Flow EVM
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  MNT
+                <a
+                  href="https://zama.ai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  Zama fhEVM
                 </a>
               </li>
               <li>
-                <a href="https://chain.link/automation" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  Chainlink Automation
+                <a
+                  href="https://docs.pimlico.io"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  Pimlico (ERC-4337)
                 </a>
               </li>
             </ul>
@@ -56,18 +71,23 @@ export default function Footer() {
             <h4 className="text-sm font-semibold text-gray-900 mb-4">Connect</h4>
             <ul className="space-y-3">
               <li>
-                <a href="https://twitter.com/mantlepay" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  Twitter
-                </a>
-              </li>
-              <li>
-                <a href="https://github.com/stoneybro/mantlepay" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                <a
+                  href="https://github.com/Stoneybro/complyr"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                >
                   GitHub
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  Documentation
+                <a
+                  href="https://twitter.com/stoneybro"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  Twitter
                 </a>
               </li>
             </ul>
@@ -75,8 +95,10 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-200 pt-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <p className="text-sm text-gray-600">© 2026 MantlePay</p>
-          <p className="text-sm text-gray-600">Built for the Mantle Global Hackathon 2025 | Zion Livingstone</p>
+          <p className="text-sm text-gray-600">© 2026 Complyr</p>
+          <p className="text-sm text-gray-600">
+            Built for PL Genesis Hackathon 2026 · Flow + Zama tracks · by Zion Livingstone
+          </p>
         </div>
       </div>
     </footer>
