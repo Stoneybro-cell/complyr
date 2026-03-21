@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 /**
  * @title ISmartWallet
  * @author stoneybro
- * @notice Interface for Mp Smart Wallet that the Intent Registry interacts with
+ * @notice Interface for Smart Wallet that the Intent Registry interacts with
  * @custom:security-contact stoneybrocrypto@gmail.com
  */
 interface ISmartWallet {
@@ -73,7 +73,7 @@ interface ISmartWallet {
     function decreaseCommitment(address token, uint256 amount) external;
 
     /**
-     * @notice Executes a batch of transfers as part of an Mp intent.
+     * @notice Executes a batch of transfers as part of an intent.
      * @param token The token address (address(0) for ETH, token address for ERC20).
      * @param recipients The array of recipient addresses.
      * @param amounts The array of amounts corresponding to each recipient.

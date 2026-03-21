@@ -13,6 +13,7 @@ build/
 packages/contract/cache/
 packages/contract/out/
 packages/contract/lib/
+packages/contract/broadcast/
 
 # Environment
 .env

@@ -7,9 +7,9 @@ import {ISmartWallet} from "./ISmartWallet.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
- * @title Mp Intent Registry
+ * @title Intent Registry
  * @author stoneybro
- * @notice Central registry for managing automated payment intents across all Mp wallets.
+ * @notice Central registry for managing automated payment intents across all wallets.
  * @dev Integrates with Chainlink Automation for decentralized intent execution. Supports ETH and ERC20 tokens.
  * @custom:security-contact stoneybrocrypto@gmail.com
  */

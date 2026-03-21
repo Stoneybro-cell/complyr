@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSmartAccountContext } from "@/lib/SmartAccountProvider";
 import { encodeFunctionData } from "viem";
 import { IntentRegistryABI } from "@/lib/abi/IntentRegistryABI";
-import { MpRegistryAddress } from "@/lib/CA";
+import { RegistryAddress } from "@/lib/CA";
 import { CancelIntentParams } from "./types";
 
 export function useCancelIntent() {
@@ -35,7 +35,7 @@ export function useCancelIntent() {
                     account: smartAccountClient.account,
                     calls: [
                         {
-                            to: MpRegistryAddress,
+                            to: RegistryAddress,
                             data: callData,
                             value: 0n,
                         },

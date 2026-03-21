@@ -12,10 +12,10 @@ export default function Technology() {
     {
       title: 'Privacy layer — Zama fhEVM',
       items: [
-        'MpConfidentialPayroll.sol: stores encrypted salary (euint64), jurisdiction (euint8), category (euint8)',
+        'ConfidentialPayroll.sol: stores encrypted salary (euint64), jurisdiction (euint8), category (euint8)',
         'Zama TFHE library for on-chain FHE operations',
         'ACL-based access control: employers grant selective decrypt per record per address',
-        'Deployed to Zama Sepolia testnet; record ID stored alongside Flow intent',
+        'Deployed to Zama fhEVM testnet; record ID stored alongside Flow intent',
       ],
     },
     {

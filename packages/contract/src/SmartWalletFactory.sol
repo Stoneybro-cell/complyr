@@ -5,9 +5,9 @@ import {SmartWallet} from "./SmartWallet.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 
 /**
- * @title Mp Smart Wallet Factory
+ * @title Smart Wallet Factory
  * @author stoneybro
- * @notice Factory for deploying ERC-1167 minimal proxy clones of Mp Smart Wallet.
+ * @notice Factory for deploying ERC-1167 minimal proxy clones of Smart Wallet.
  * @custom:security-contact stoneybrocrypto@gmail.com
  */
 contract SmartWalletFactory {

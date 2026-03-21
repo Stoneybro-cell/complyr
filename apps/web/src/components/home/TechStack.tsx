@@ -3,7 +3,7 @@ import { Zap, DollarSign, Lock, Shield } from "lucide-react";
 const benefits = [
   { icon: Zap, text: "Fast finality with low fees on Flow EVM" },
   { icon: DollarSign, text: "Gasless payments for recipients via paymaster" },
-  { icon: Lock, text: "FHE encryption via Zama fhEVM on Sepolia" },
+  { icon: Lock, text: "FHE encryption via Zama fhEVM" },
   { icon: Shield, text: "Non-custodial — employer retains full key control" },
 ];
 

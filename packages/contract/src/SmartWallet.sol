@@ -12,10 +12,10 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
- * @title Mp Smart Wallet
+ * @title Smart Wallet
  * @author stoneybro
  * @notice A smart contract wallet implementation compliant with ERC-4337.
- * @dev Implements IAccount from account-abstraction. Supports Mp Intent Registry for automated payments.
+ * @dev Implements IAccount from account-abstraction. Supports Intent Registry for automated payments.
  * @custom:security-contact stoneybrocrypto@gmail.com
  */
 contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
@@ -42,7 +42,7 @@ contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
     /// @notice Account owner address. Signer of UserOperations.
     address public s_owner;
 
-    /// @notice Mp intent registry authorized to trigger scheduled transfers.
+    /// @notice Intent registry authorized to trigger scheduled transfers.
     address public immutable intentRegistry;
 
     /// @notice Amount of funds committed to intents per token (locked)
@@ -389,7 +389,7 @@ contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
     }
 
     /**
-     * @notice Executes a batch of transfers as part of an Mp intent.
+     * @notice Executes a batch of transfers as part of an intent.
      *
      * @param token The token address (address(0) for ETH, token address for ERC20).
      * @param recipients The array of recipient addresses.
