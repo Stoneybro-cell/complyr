@@ -4,7 +4,7 @@ export default function Technology() {
       title: 'Execution layer — Flow EVM',
       items: [
         'ERC-4337 smart accounts with gasless paymaster — recipients never pay gas',
-        'MpIntentRegistry: on-chain payment scheduler with commitment tracking',
+        'IntentRegistry: on-chain payment scheduler with commitment tracking',
         'Keeper automation triggers each payment cycle',
         'Contracts written in Solidity 0.8.28, deployed to Flow EVM testnet',
       ],

@@ -3,7 +3,7 @@ import { useWallets } from "@privy-io/react-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSmartAccountContext } from "@/lib/SmartAccountProvider";
 import { encodeFunctionData, parseEther, zeroAddress } from "viem";
-import { MpIntentRegistryABI } from "@/lib/abi/MpIntentRegistryABI";
+import { IntentRegistryABI } from "@/lib/abi/IntentRegistryABI";
 import { MpRegistryAddress } from "@/lib/CA";
 import { RecurringPaymentParams } from "./types";
 import { checkSufficientBalance } from "./utils";
@@ -47,7 +47,7 @@ export function useRecurringPayment(availableEthBalance?: string) {
                 const amountsInWei = params.amounts.map((amount) => parseEther(amount));
 
                 const callData = encodeFunctionData({
-                    abi: MpIntentRegistryABI,
+                    abi: IntentRegistryABI,
                     functionName: "createIntent",
                     args: [
                         zeroAddress, // FLOW (native token)

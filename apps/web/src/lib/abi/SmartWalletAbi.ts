@@ -1,4 +1,4 @@
-export const MpSmartWalletABI = [
+export const SmartWalletABI = [
   {
     "type": "constructor",
     "inputs": [
@@ -79,7 +79,7 @@ export const MpSmartWalletABI = [
       {
         "name": "calls",
         "type": "tuple[]",
-        "internalType": "struct MpSmartWallet.Call[]",
+        "internalType": "struct SmartWallet.Call[]",
         "components": [
           {
             "name": "target",
@@ -139,7 +139,7 @@ export const MpSmartWalletABI = [
       {
         "name": "compliance",
         "type": "tuple",
-        "internalType": "struct IMpSmartWallet.ComplianceMetadata",
+        "internalType": "struct ISmartWallet.ComplianceMetadata",
         "components": [
           {
             "name": "entityIds",
@@ -149,12 +149,12 @@ export const MpSmartWalletABI = [
           {
             "name": "jurisdictions",
             "type": "uint8[]",
-            "internalType": "enum IMpSmartWallet.Jurisdiction[]"
+            "internalType": "enum ISmartWallet.Jurisdiction[]"
           },
           {
             "name": "categories",
             "type": "uint8[]",
-            "internalType": "enum IMpSmartWallet.Category[]"
+            "internalType": "enum ISmartWallet.Category[]"
           },
           {
             "name": "referenceId",
@@ -180,7 +180,7 @@ export const MpSmartWalletABI = [
       {
         "name": "calls",
         "type": "tuple[]",
-        "internalType": "struct MpSmartWallet.Call[]",
+        "internalType": "struct SmartWallet.Call[]",
         "components": [
           {
             "name": "target",
@@ -202,7 +202,7 @@ export const MpSmartWalletABI = [
       {
         "name": "compliance",
         "type": "tuple",
-        "internalType": "struct IMpSmartWallet.ComplianceMetadata",
+        "internalType": "struct ISmartWallet.ComplianceMetadata",
         "components": [
           {
             "name": "entityIds",
@@ -212,12 +212,12 @@ export const MpSmartWalletABI = [
           {
             "name": "jurisdictions",
             "type": "uint8[]",
-            "internalType": "enum IMpSmartWallet.Jurisdiction[]"
+            "internalType": "enum ISmartWallet.Jurisdiction[]"
           },
           {
             "name": "categories",
             "type": "uint8[]",
-            "internalType": "enum IMpSmartWallet.Category[]"
+            "internalType": "enum ISmartWallet.Category[]"
           },
           {
             "name": "referenceId",
@@ -252,7 +252,7 @@ export const MpSmartWalletABI = [
       {
         "name": "compliance",
         "type": "tuple",
-        "internalType": "struct IMpSmartWallet.ComplianceMetadata",
+        "internalType": "struct ISmartWallet.ComplianceMetadata",
         "components": [
           {
             "name": "entityIds",
@@ -262,12 +262,12 @@ export const MpSmartWalletABI = [
           {
             "name": "jurisdictions",
             "type": "uint8[]",
-            "internalType": "enum IMpSmartWallet.Jurisdiction[]"
+            "internalType": "enum ISmartWallet.Jurisdiction[]"
           },
           {
             "name": "categories",
             "type": "uint8[]",
-            "internalType": "enum IMpSmartWallet.Category[]"
+            "internalType": "enum ISmartWallet.Category[]"
           },
           {
             "name": "referenceId",
@@ -545,13 +545,13 @@ export const MpSmartWalletABI = [
         "name": "jurisdictions",
         "type": "uint8[]",
         "indexed": false,
-        "internalType": "enum IMpSmartWallet.Jurisdiction[]"
+        "internalType": "enum ISmartWallet.Jurisdiction[]"
       },
       {
         "name": "categories",
         "type": "uint8[]",
         "indexed": false,
-        "internalType": "enum IMpSmartWallet.Category[]"
+        "internalType": "enum ISmartWallet.Category[]"
       },
       {
         "name": "referenceId",
@@ -813,42 +813,42 @@ export const MpSmartWalletABI = [
   },
   {
     "type": "error",
-    "name": "MpSmartWallet__InsufficientUncommittedFunds",
+    "name": "SmartWallet__InsufficientUncommittedFunds",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpSmartWallet__IntentRegistryZeroAddress",
+    "name": "SmartWallet__IntentRegistryZeroAddress",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpSmartWallet__InvalidBatchInput",
+    "name": "SmartWallet__InvalidBatchInput",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpSmartWallet__InvalidCommitmentDecrease",
+    "name": "SmartWallet__InvalidCommitmentDecrease",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpSmartWallet__NotFromEntryPoint",
+    "name": "SmartWallet__NotFromEntryPoint",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpSmartWallet__NotFromRegistry",
+    "name": "SmartWallet__NotFromRegistry",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpSmartWallet__OwnerIsZeroAddress",
+    "name": "SmartWallet__OwnerIsZeroAddress",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpSmartWallet__TransferFailed",
+    "name": "SmartWallet__TransferFailed",
     "inputs": [
       {
         "name": "recipient",
@@ -869,7 +869,7 @@ export const MpSmartWalletABI = [
   },
   {
     "type": "error",
-    "name": "MpSmartWallet__Unauthorized",
+    "name": "SmartWallet__Unauthorized",
     "inputs": []
   },
   {

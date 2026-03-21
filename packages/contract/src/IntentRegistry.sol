@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/automation/AutomationCompatible.sol";
-import {IMpSmartWallet} from "./IMpSmartWallet.sol";
+import {ISmartWallet} from "./ISmartWallet.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
@@ -13,7 +13,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * @dev Integrates with Chainlink Automation for decentralized intent execution. Supports ETH and ERC20 tokens.
  * @custom:security-contact stoneybrocrypto@gmail.com
  */
-contract MpIntentRegistry is AutomationCompatibleInterface, ReentrancyGuard {
+contract IntentRegistry is AutomationCompatibleInterface, ReentrancyGuard {
     /*//////////////////////////////////////////////////////////////
                                 TYPES
     //////////////////////////////////////////////////////////////*/
@@ -180,52 +180,52 @@ contract MpIntentRegistry is AutomationCompatibleInterface, ReentrancyGuard {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Thrown when no recipients are provided
-    error MpIntentRegistry__NoRecipients();
+    error IntentRegistry__NoRecipients();
 
     /// @notice Thrown when a recipient address is zero
-    error MpIntentRegistry__InvalidRecipient();
+    error IntentRegistry__InvalidRecipient();
 
     /// @notice Thrown when recipients and amounts arrays have different lengths
-    error MpIntentRegistry__ArrayLengthMismatch();
+    error IntentRegistry__ArrayLengthMismatch();
 
     /// @notice Thrown when number of recipients exceeds maximum allowed
-    error MpIntentRegistry__TooManyRecipients();
+    error IntentRegistry__TooManyRecipients();
 
     /// @notice Thrown when duration is zero or exceeds maximum
-    error MpIntentRegistry__InvalidDuration();
+    error IntentRegistry__InvalidDuration();
 
     /// @notice Thrown when interval is below minimum
-    error MpIntentRegistry__InvalidInterval();
+    error IntentRegistry__InvalidInterval();
 
     /// @notice Thrown when an amount is zero or negative
-    error MpIntentRegistry__InvalidAmount();
+    error IntentRegistry__InvalidAmount();
 
     /// @notice Thrown when total transaction count is zero
-    error MpIntentRegistry__InvalidTotalTransactionCount();
+    error IntentRegistry__InvalidTotalTransactionCount();
 
     /// @notice Thrown when wallet has insufficient funds
-    error MpIntentRegistry__InsufficientFunds();
+    error IntentRegistry__InsufficientFunds();
 
     /// @notice Thrown when trying to execute an inactive intent
-    error MpIntentRegistry__IntentNotActive();
+    error IntentRegistry__IntentNotActive();
 
     /// @notice Thrown when intent conditions are not met for execution
-    error MpIntentRegistry__IntentNotExecutable();
+    error IntentRegistry__IntentNotExecutable();
 
     /// @notice Thrown when the caller is not the wallet owner
-    error MpIntentRegistry__Unauthorized();
+    error IntentRegistry__Unauthorized();
 
     /// @notice Thrown when token address is invalid
-    error MpIntentRegistry__InvalidToken();
+    error IntentRegistry__InvalidToken();
 
     /// @notice Thrown when transaction start time is in the past
-    error MpIntentRegistry__StartTimeInPast();
+    error IntentRegistry__StartTimeInPast();
 
     /// @notice Thrown when intent not found for wallet
-    error MpIntentRegistry__IntentNotFound();
+    error IntentRegistry__IntentNotFound();
 
     /// @notice Thrown when compliance metadata is invalid (e.g., entityIds length mismatch)
-    error MpIntentRegistry__InvalidComplianceMetadata();
+    error IntentRegistry__InvalidComplianceMetadata();
 
     /*//////////////////////////////////////////////////////////////
                                FUNCTIONS
@@ -269,47 +269,47 @@ contract MpIntentRegistry is AutomationCompatibleInterface, ReentrancyGuard {
         ///@notice Validate token address (address(0) for ETH is valid)
         if (token != address(0)) {
             ///@dev Basic check: token must be a contract
-            if (token.code.length == 0) revert MpIntentRegistry__InvalidToken();
+            if (token.code.length == 0) revert IntentRegistry__InvalidToken();
         }
 
         ///@notice Validate recipients and amounts arrays
-        if (recipients.length == 0) revert MpIntentRegistry__NoRecipients();
-        if (recipients.length != amounts.length) revert MpIntentRegistry__ArrayLengthMismatch();
-        if (recipients.length > MAX_RECIPIENTS) revert MpIntentRegistry__TooManyRecipients();
+        if (recipients.length == 0) revert IntentRegistry__NoRecipients();
+        if (recipients.length != amounts.length) revert IntentRegistry__ArrayLengthMismatch();
+        if (recipients.length > MAX_RECIPIENTS) revert IntentRegistry__TooManyRecipients();
 
         ///@notice Validate timing parameters
-        if (duration == 0 || duration > MAX_DURATION) revert MpIntentRegistry__InvalidDuration();
-        if (interval < MIN_INTERVAL) revert MpIntentRegistry__InvalidInterval();
+        if (duration == 0 || duration > MAX_DURATION) revert IntentRegistry__InvalidDuration();
+        if (interval < MIN_INTERVAL) revert IntentRegistry__InvalidInterval();
 
         ///@notice Validate start time is not in the past (unless it's 0 for immediate start)
         if (transactionStartTime != 0 && transactionStartTime < block.timestamp) {
-            revert MpIntentRegistry__StartTimeInPast();
+            revert IntentRegistry__StartTimeInPast();
         }
 
         ///@notice Validate compliance metadata: entityIds length must match recipients if provided
         if (complianceData.entityIds.length > 0 && complianceData.entityIds.length != recipients.length) {
-            revert MpIntentRegistry__InvalidComplianceMetadata();
+            revert IntentRegistry__InvalidComplianceMetadata();
         }
 
         ///@notice Calculate total amount per execution and validate each recipient/amount
         uint256 totalAmountPerExecution = 0;
         for (uint256 i = 0; i < recipients.length; i++) {
-            if (recipients[i] == address(0)) revert MpIntentRegistry__InvalidRecipient();
-            if (amounts[i] == 0) revert MpIntentRegistry__InvalidAmount();
+            if (recipients[i] == address(0)) revert IntentRegistry__InvalidRecipient();
+            if (amounts[i] == 0) revert IntentRegistry__InvalidAmount();
             totalAmountPerExecution += amounts[i];
         }
 
         ///@notice Calculate projected final transaction count
         uint256 totalTransactionCount = duration / interval;
-        if (totalTransactionCount == 0) revert MpIntentRegistry__InvalidTotalTransactionCount();
+        if (totalTransactionCount == 0) revert IntentRegistry__InvalidTotalTransactionCount();
 
         ///@notice Calculate total commitment across all executions
         uint256 totalCommitment = totalAmountPerExecution * totalTransactionCount;
 
         ///@notice Check if the wallet has enough available funds to cover the intent
-        uint256 availableBalance = IMpSmartWallet(wallet).getAvailableBalance(token);
+        uint256 availableBalance = ISmartWallet(wallet).getAvailableBalance(token);
         if (availableBalance < totalCommitment) {
-            revert MpIntentRegistry__InsufficientFunds();
+            revert IntentRegistry__InsufficientFunds();
         }
 
         ///@notice Generate a unique intent id using abi.encode to prevent collision
@@ -341,7 +341,7 @@ contract MpIntentRegistry is AutomationCompatibleInterface, ReentrancyGuard {
 
         ///@notice Update the wallet's committed funds for this token
         walletCommittedFunds[wallet][token] += totalCommitment;
-        IMpSmartWallet(wallet).increaseCommitment(token, totalCommitment);
+        ISmartWallet(wallet).increaseCommitment(token, totalCommitment);
 
         ///@notice Add the intent id to the wallet's active intent ids
         walletActiveIntentIds[wallet].push(intentId);
@@ -462,14 +462,14 @@ contract MpIntentRegistry is AutomationCompatibleInterface, ReentrancyGuard {
 
         ///@notice Verify the intent exists and belongs to this wallet
         if (intent.id != intentId || intent.wallet != wallet) {
-            revert MpIntentRegistry__IntentNotFound();
+            revert IntentRegistry__IntentNotFound();
         }
 
         ///@notice Verify the intent is active
-        if (!intent.active) revert MpIntentRegistry__IntentNotActive();
+        if (!intent.active) revert IntentRegistry__IntentNotActive();
 
         ///@notice Verify the intent should be executed
-        if (!shouldExecuteIntent(intent)) revert MpIntentRegistry__IntentNotExecutable();
+        if (!shouldExecuteIntent(intent)) revert IntentRegistry__IntentNotExecutable();
 
         ///@notice Store current transaction count before incrementing
         uint256 currentTransactionCount = intent.transactionCount;
@@ -492,10 +492,10 @@ contract MpIntentRegistry is AutomationCompatibleInterface, ReentrancyGuard {
 
         ///@notice Update the wallet's committed funds for this token
         walletCommittedFunds[wallet][intent.token] -= totalAmount;
-        IMpSmartWallet(wallet).decreaseCommitment(intent.token, totalAmount);
+        ISmartWallet(wallet).decreaseCommitment(intent.token, totalAmount);
 
         ///@notice Execute the batch intent transfer with token, intentId and transaction count
-        uint256 failedAmount = IMpSmartWallet(wallet)
+        uint256 failedAmount = ISmartWallet(wallet)
             .executeBatchIntentTransfer(
                 intent.token,
                 intent.recipients,
@@ -523,21 +523,21 @@ contract MpIntentRegistry is AutomationCompatibleInterface, ReentrancyGuard {
     function _convertCompliance(ComplianceMetadata storage local)
         internal
         view
-        returns (IMpSmartWallet.ComplianceMetadata memory)
+        returns (ISmartWallet.ComplianceMetadata memory)
     {
         // Convert local enums to interface enums (same values, different types)
-        IMpSmartWallet.Jurisdiction[] memory jurisdictions =
-            new IMpSmartWallet.Jurisdiction[](local.jurisdictions.length);
+        ISmartWallet.Jurisdiction[] memory jurisdictions =
+            new ISmartWallet.Jurisdiction[](local.jurisdictions.length);
         for (uint256 i = 0; i < local.jurisdictions.length; i++) {
-            jurisdictions[i] = IMpSmartWallet.Jurisdiction(uint8(local.jurisdictions[i]));
+            jurisdictions[i] = ISmartWallet.Jurisdiction(uint8(local.jurisdictions[i]));
         }
 
-        IMpSmartWallet.Category[] memory categories = new IMpSmartWallet.Category[](local.categories.length);
+        ISmartWallet.Category[] memory categories = new ISmartWallet.Category[](local.categories.length);
         for (uint256 i = 0; i < local.categories.length; i++) {
-            categories[i] = IMpSmartWallet.Category(uint8(local.categories[i]));
+            categories[i] = ISmartWallet.Category(uint8(local.categories[i]));
         }
 
-        return IMpSmartWallet.ComplianceMetadata({
+        return ISmartWallet.ComplianceMetadata({
             entityIds: local.entityIds,
             jurisdictions: jurisdictions,
             categories: categories,
@@ -583,10 +583,10 @@ contract MpIntentRegistry is AutomationCompatibleInterface, ReentrancyGuard {
 
         ///@notice Verify the intent exists and belongs to this wallet
         if (intent.id != intentId || intent.wallet != wallet) {
-            revert MpIntentRegistry__IntentNotFound();
+            revert IntentRegistry__IntentNotFound();
         }
 
-        if (!intent.active) revert MpIntentRegistry__IntentNotActive();
+        if (!intent.active) revert IntentRegistry__IntentNotActive();
 
         ///@notice Calculate remaining amount
         uint256 totalAmount = 0;
@@ -607,7 +607,7 @@ contract MpIntentRegistry is AutomationCompatibleInterface, ReentrancyGuard {
         ///@notice Unlock funds when the intent is cancelled (only if there are remaining transactions)
         if (amountRemaining > 0) {
             walletCommittedFunds[wallet][intent.token] -= amountRemaining;
-            IMpSmartWallet(wallet).decreaseCommitment(intent.token, amountRemaining);
+            ISmartWallet(wallet).decreaseCommitment(intent.token, amountRemaining);
         }
 
         intent.active = false;

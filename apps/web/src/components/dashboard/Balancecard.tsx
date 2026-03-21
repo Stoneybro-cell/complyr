@@ -12,8 +12,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 
 interface BalanceCardsProps {
-  availableMpToken?: string;
-  committedMpToken?: string;
+  availableToken?: string;
+  committedToken?: string;
   isLoading?: boolean;
 }
 
@@ -33,8 +33,8 @@ const formatBalance = (value: string): string => {
   return num.toFixed(2).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
 };
 
-export function BalanceCards({ availableMpToken = "0", committedMpToken = "0", isLoading }: BalanceCardsProps) {
-  const totalBalance = (parseFloat(availableMpToken) + parseFloat(committedMpToken)).toString();
+export function BalanceCards({ availableToken = "0", committedToken = "0", isLoading }: BalanceCardsProps) {
+  const totalBalance = (parseFloat(availableToken) + parseFloat(committedToken)).toString();
   const safeTotal = isNaN(Number(totalBalance)) ? "0" : totalBalance;
 
   return (
@@ -64,7 +64,7 @@ export function BalanceCards({ availableMpToken = "0", committedMpToken = "0", i
         <CardHeader>
           <CardDescription>Reserved Balance</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {isLoading ? <Skeleton className="h-8 w-24" /> : `${formatBalance(committedMpToken)} FLOW`}
+            {isLoading ? <Skeleton className="h-8 w-24" /> : `${formatBalance(committedToken)} FLOW`}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
@@ -74,7 +74,7 @@ export function BalanceCards({ availableMpToken = "0", committedMpToken = "0", i
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            {parseFloat(committedMpToken) > 0 ? "Funds currently reserved" : "No activity this month"}
+            {parseFloat(committedToken) > 0 ? "Funds currently reserved" : "No activity this month"}
           </div>
           <div className="text-muted-foreground">
             Value locked in payrolls and subscriptions
@@ -85,7 +85,7 @@ export function BalanceCards({ availableMpToken = "0", committedMpToken = "0", i
         <CardHeader>
           <CardDescription>Available Balance</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {isLoading ? <Skeleton className="h-8 w-24" /> : `${formatBalance(availableMpToken)} FLOW`}
+            {isLoading ? <Skeleton className="h-8 w-24" /> : `${formatBalance(availableToken)} FLOW`}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
@@ -95,7 +95,7 @@ export function BalanceCards({ availableMpToken = "0", committedMpToken = "0", i
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
           <div className="line-clamp-1 flex gap-2 font-medium">
-            {parseFloat(availableMpToken) > 0 ? "Liquidity available" : "No activity this month"}
+            {parseFloat(availableToken) > 0 ? "Liquidity available" : "No activity this month"}
           </div>
           <div className="text-muted-foreground">Value available for use and withdrawal</div>
         </CardFooter>

@@ -5,7 +5,7 @@ import { useSmartAccountContext } from "@/lib/SmartAccountProvider";
 import { parseEther, encodeFunctionData } from "viem";
 import { SingleTransferParams } from "./types";
 import { checkSufficientBalance } from "./utils";
-import { MpSmartWalletABI } from "@/lib/abi/MpSmartWalletAbi";
+import { SmartWalletABI } from "@/lib/abi/SmartWalletAbi";
 
 export function useSingleTransfer(availableEthBalance?: string) {
     const { getClient } = useSmartAccountContext();
@@ -59,7 +59,7 @@ export function useSingleTransfer(availableEthBalance?: string) {
                     };
 
                     const encodedData = encodeFunctionData({
-                        abi: MpSmartWalletABI,
+                        abi: SmartWalletABI,
                         functionName: 'executeWithCompliance',
                         args: [
                             params.to,

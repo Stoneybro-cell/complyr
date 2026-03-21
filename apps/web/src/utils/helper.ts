@@ -1,6 +1,6 @@
 import { readContract } from "@/lib/server";
 import { formatUnits, formatEther } from "viem";
-import { MpSmartWalletABI } from "@/lib/abi/MpSmartWalletAbi";
+import { SmartWalletABI } from "@/lib/abi/SmartWalletAbi";
 import { zeroAddress } from "viem";
 import { getPublicClient } from "@/lib/client";
 
@@ -19,7 +19,7 @@ export async function fetchWalletBalance(smartAccountAddress: `0x${string}`) {
   // Get committed funds for native token (zeroAddress represents native FLOW)
   const committedFunds = await readContract({
     address: smartAccountAddress,
-    abi: MpSmartWalletABI,
+    abi: SmartWalletABI,
     functionName: "s_committedFunds",
     args: [zeroAddress],
   }) as bigint;

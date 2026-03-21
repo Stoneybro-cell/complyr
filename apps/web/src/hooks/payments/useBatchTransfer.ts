@@ -5,7 +5,7 @@ import { useSmartAccountContext } from "@/lib/SmartAccountProvider";
 import { parseEther, encodeFunctionData } from "viem";
 import { BatchTransferParams } from "./types";
 import { checkSufficientBalance } from "./utils";
-import { MpSmartWalletABI } from "@/lib/abi/MpSmartWalletAbi";
+import { SmartWalletABI } from "@/lib/abi/SmartWalletAbi";
 
 export function useBatchTransfer(availableEthBalance?: string) {
     const { getClient } = useSmartAccountContext();
@@ -45,7 +45,7 @@ export function useBatchTransfer(availableEthBalance?: string) {
 
                 // Prepare calls
                 const calls = params.recipients.map((recipient, index) => ({
-                    target: recipient, // specific struct field name for MpSmartWallet
+                    target: recipient, // specific struct field name for SmartWallet
                     to: recipient,     // for standard permissionless calls
                     data: "0x" as `0x${string}`,
                     value: amountsInWei[index],
@@ -78,7 +78,7 @@ export function useBatchTransfer(availableEthBalance?: string) {
                     }));
 
                     const encodedData = encodeFunctionData({
-                        abi: MpSmartWalletABI,
+                        abi: SmartWalletABI,
                         functionName: 'executeBatchWithCompliance',
                         args: [abiCalls, complianceData]
                     });

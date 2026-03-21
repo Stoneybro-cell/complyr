@@ -1,7 +1,7 @@
 // Compliance enum mappings - mirrors the Solidity enums
 // Used to convert between human-readable strings and contract enum values
 
-// Jurisdiction enum values (must match MpIntentRegistry.Jurisdiction)
+// Jurisdiction enum values (must match IntentRegistry.Jurisdiction)
 export const Jurisdiction = {
     NONE: 0,
     US_CA: 1,
@@ -19,7 +19,7 @@ export const Jurisdiction = {
     OTHER: 13,
 } as const;
 
-// Category enum values (must match MpIntentRegistry.Category)
+// Category enum values (must match IntentRegistry.Category)
 export const Category = {
     NONE: 0,
     PAYROLL_W2: 1,

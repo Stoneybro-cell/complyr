@@ -13,7 +13,7 @@ export default function Features() {
       icon: RefreshCw,
       title: 'Automated recurring payroll on Flow EVM',
       description: 'Payment schedules are created once and execute automatically on Flow — gasless for recipients, fully non-custodial.',
-      details: 'The MpIntentRegistry contract holds the payment schedule: recipients, amounts, interval, and duration. Automation triggers each payment cycle. Funds are committed upfront and released on schedule — no manual execution required.',
+      details: 'The IntentRegistry contract holds the payment schedule: recipients, amounts, interval, and duration. Automation triggers each payment cycle. Funds are committed upfront and released on schedule — no manual execution required.',
       value: 'Set up monthly payroll for a 20-person team once. It runs for 12 months without you touching it.',
     },
     {

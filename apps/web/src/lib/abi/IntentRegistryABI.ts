@@ -1,4 +1,4 @@
-export const MpIntentRegistryABI = [
+export const IntentRegistryABI = [
   {
     "type": "function",
     "name": "MAX_DURATION",
@@ -122,7 +122,7 @@ export const MpIntentRegistryABI = [
       {
         "name": "complianceData",
         "type": "tuple",
-        "internalType": "struct MpIntentRegistry.ComplianceMetadata",
+        "internalType": "struct IntentRegistry.ComplianceMetadata",
         "components": [
           {
             "name": "entityIds",
@@ -132,12 +132,12 @@ export const MpIntentRegistryABI = [
           {
             "name": "jurisdictions",
             "type": "uint8[]",
-            "internalType": "enum MpIntentRegistry.Jurisdiction[]"
+            "internalType": "enum IntentRegistry.Jurisdiction[]"
           },
           {
             "name": "categories",
             "type": "uint8[]",
-            "internalType": "enum MpIntentRegistry.Category[]"
+            "internalType": "enum IntentRegistry.Category[]"
           },
           {
             "name": "referenceId",
@@ -194,7 +194,7 @@ export const MpIntentRegistryABI = [
       {
         "name": "",
         "type": "tuple",
-        "internalType": "struct MpIntentRegistry.Intent",
+        "internalType": "struct IntentRegistry.Intent",
         "components": [
           {
             "name": "id",
@@ -274,7 +274,7 @@ export const MpIntentRegistryABI = [
           {
             "name": "compliance",
             "type": "tuple",
-            "internalType": "struct MpIntentRegistry.ComplianceMetadata",
+            "internalType": "struct IntentRegistry.ComplianceMetadata",
             "components": [
               {
                 "name": "entityIds",
@@ -284,12 +284,12 @@ export const MpIntentRegistryABI = [
               {
                 "name": "jurisdictions",
                 "type": "uint8[]",
-                "internalType": "enum MpIntentRegistry.Jurisdiction[]"
+                "internalType": "enum IntentRegistry.Jurisdiction[]"
               },
               {
                 "name": "categories",
                 "type": "uint8[]",
-                "internalType": "enum MpIntentRegistry.Category[]"
+                "internalType": "enum IntentRegistry.Category[]"
               },
               {
                 "name": "referenceId",
@@ -512,7 +512,7 @@ export const MpIntentRegistryABI = [
       {
         "name": "compliance",
         "type": "tuple",
-        "internalType": "struct MpIntentRegistry.ComplianceMetadata",
+        "internalType": "struct IntentRegistry.ComplianceMetadata",
         "components": [
           {
             "name": "entityIds",
@@ -522,12 +522,12 @@ export const MpIntentRegistryABI = [
           {
             "name": "jurisdictions",
             "type": "uint8[]",
-            "internalType": "enum MpIntentRegistry.Jurisdiction[]"
+            "internalType": "enum IntentRegistry.Jurisdiction[]"
           },
           {
             "name": "categories",
             "type": "uint8[]",
-            "internalType": "enum MpIntentRegistry.Category[]"
+            "internalType": "enum IntentRegistry.Category[]"
           },
           {
             "name": "referenceId",
@@ -662,7 +662,7 @@ export const MpIntentRegistryABI = [
         "name": "compliance",
         "type": "tuple",
         "indexed": false,
-        "internalType": "struct MpIntentRegistry.ComplianceMetadata",
+        "internalType": "struct IntentRegistry.ComplianceMetadata",
         "components": [
           {
             "name": "entityIds",
@@ -672,12 +672,12 @@ export const MpIntentRegistryABI = [
           {
             "name": "jurisdictions",
             "type": "uint8[]",
-            "internalType": "enum MpIntentRegistry.Jurisdiction[]"
+            "internalType": "enum IntentRegistry.Jurisdiction[]"
           },
           {
             "name": "categories",
             "type": "uint8[]",
-            "internalType": "enum MpIntentRegistry.Category[]"
+            "internalType": "enum IntentRegistry.Category[]"
           },
           {
             "name": "referenceId",
@@ -741,82 +741,82 @@ export const MpIntentRegistryABI = [
   },
   {
     "type": "error",
-    "name": "MpIntentRegistry__ArrayLengthMismatch",
+    "name": "IntentRegistry__ArrayLengthMismatch",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpIntentRegistry__InsufficientFunds",
+    "name": "IntentRegistry__InsufficientFunds",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpIntentRegistry__IntentNotActive",
+    "name": "IntentRegistry__IntentNotActive",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpIntentRegistry__IntentNotExecutable",
+    "name": "IntentRegistry__IntentNotExecutable",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpIntentRegistry__IntentNotFound",
+    "name": "IntentRegistry__IntentNotFound",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpIntentRegistry__InvalidAmount",
+    "name": "IntentRegistry__InvalidAmount",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpIntentRegistry__InvalidComplianceMetadata",
+    "name": "IntentRegistry__InvalidComplianceMetadata",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpIntentRegistry__InvalidDuration",
+    "name": "IntentRegistry__InvalidDuration",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpIntentRegistry__InvalidInterval",
+    "name": "IntentRegistry__InvalidInterval",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpIntentRegistry__InvalidRecipient",
+    "name": "IntentRegistry__InvalidRecipient",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpIntentRegistry__InvalidToken",
+    "name": "IntentRegistry__InvalidToken",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpIntentRegistry__InvalidTotalTransactionCount",
+    "name": "IntentRegistry__InvalidTotalTransactionCount",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpIntentRegistry__NoRecipients",
+    "name": "IntentRegistry__NoRecipients",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpIntentRegistry__StartTimeInPast",
+    "name": "IntentRegistry__StartTimeInPast",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpIntentRegistry__TooManyRecipients",
+    "name": "IntentRegistry__TooManyRecipients",
     "inputs": []
   },
   {
     "type": "error",
-    "name": "MpIntentRegistry__Unauthorized",
+    "name": "IntentRegistry__Unauthorized",
     "inputs": []
   },
   {

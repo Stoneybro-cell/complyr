@@ -2,12 +2,12 @@
 pragma solidity ^0.8.19;
 
 /**
- * @title IMpSmartWallet
+ * @title ISmartWallet
  * @author stoneybro
  * @notice Interface for Mp Smart Wallet that the Intent Registry interacts with
  * @custom:security-contact stoneybrocrypto@gmail.com
  */
-interface IMpSmartWallet {
+interface ISmartWallet {
     /*//////////////////////////////////////////////////////////////
                                 TYPES
     //////////////////////////////////////////////////////////////*/

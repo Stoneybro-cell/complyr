@@ -7,7 +7,7 @@ import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {_packValidationData} from "@account-abstraction/contracts/core/Helpers.sol";
-import {IMpSmartWallet} from "./IMpSmartWallet.sol";
+import {ISmartWallet} from "./ISmartWallet.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -18,7 +18,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * @dev Implements IAccount from account-abstraction. Supports Mp Intent Registry for automated payments.
  * @custom:security-contact stoneybrocrypto@gmail.com
  */
-contract MpSmartWallet is IAccount, IMpSmartWallet, ReentrancyGuard, Initializable {
+contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
     /*//////////////////////////////////////////////////////////////
                                 TYPES
     //////////////////////////////////////////////////////////////*/
@@ -33,7 +33,7 @@ contract MpSmartWallet is IAccount, IMpSmartWallet, ReentrancyGuard, Initializab
         bytes data;
     }
 
-    /// @notice ComplianceMetadata is defined in IMpSmartWallet interface
+    /// @notice ComplianceMetadata is defined in ISmartWallet interface
 
     /*//////////////////////////////////////////////////////////////
                            STATE VARIABLES
@@ -81,8 +81,8 @@ contract MpSmartWallet is IAccount, IMpSmartWallet, ReentrancyGuard, Initializab
     event ComplianceExecuted(
         bytes32 indexed txType,
         string[] entityIds,
-        IMpSmartWallet.Jurisdiction[] jurisdictions,
-        IMpSmartWallet.Category[] categories,
+        ISmartWallet.Jurisdiction[] jurisdictions,
+        ISmartWallet.Category[] categories,
         string referenceId
     );
 
@@ -120,31 +120,31 @@ contract MpSmartWallet is IAccount, IMpSmartWallet, ReentrancyGuard, Initializab
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Thrown when caller is not the EntryPoint.
-    error MpSmartWallet__NotFromEntryPoint();
+    error SmartWallet__NotFromEntryPoint();
 
     /// @notice Thrown when caller is neither EntryPoint nor owner.
-    error MpSmartWallet__Unauthorized();
+    error SmartWallet__Unauthorized();
 
     /// @notice Thrown when owner is zero address.
-    error MpSmartWallet__OwnerIsZeroAddress();
+    error SmartWallet__OwnerIsZeroAddress();
 
     /// @notice Thrown when registry address is zero.
-    error MpSmartWallet__IntentRegistryZeroAddress();
+    error SmartWallet__IntentRegistryZeroAddress();
 
     /// @notice Thrown when batch inputs are invalid.
-    error MpSmartWallet__InvalidBatchInput();
+    error SmartWallet__InvalidBatchInput();
 
     /// @notice Thrown when a transfer fails.
-    error MpSmartWallet__TransferFailed(address recipient, address token, uint256 amount);
+    error SmartWallet__TransferFailed(address recipient, address token, uint256 amount);
 
     /// @notice Thrown when there are insufficient uncommitted funds.
-    error MpSmartWallet__InsufficientUncommittedFunds();
+    error SmartWallet__InsufficientUncommittedFunds();
 
     /// @notice Thrown when caller is not the registry.
-    error MpSmartWallet__NotFromRegistry();
+    error SmartWallet__NotFromRegistry();
 
     /// @notice commitment decrease is more than commited balance
-    error MpSmartWallet__InvalidCommitmentDecrease();
+    error SmartWallet__InvalidCommitmentDecrease();
 
     /*//////////////////////////////////////////////////////////////
                               MODIFIERS
@@ -153,7 +153,7 @@ contract MpSmartWallet is IAccount, IMpSmartWallet, ReentrancyGuard, Initializab
     /// @notice Reverts if the caller is not the EntryPoint.
     modifier onlyEntryPoint() {
         if (msg.sender != entryPoint()) {
-            revert MpSmartWallet__NotFromEntryPoint();
+            revert SmartWallet__NotFromEntryPoint();
         }
         _;
     }
@@ -161,7 +161,7 @@ contract MpSmartWallet is IAccount, IMpSmartWallet, ReentrancyGuard, Initializab
     /// @notice Reverts if the caller is neither the EntryPoint nor the owner.
     modifier onlyEntryPointOrOwner() {
         if (msg.sender != entryPoint() && msg.sender != s_owner) {
-            revert MpSmartWallet__Unauthorized();
+            revert SmartWallet__Unauthorized();
         }
         _;
     }
@@ -169,7 +169,7 @@ contract MpSmartWallet is IAccount, IMpSmartWallet, ReentrancyGuard, Initializab
     /// @notice Reverts if the caller is not the registry.
     modifier onlyRegistry() {
         if (msg.sender != intentRegistry) {
-            revert MpSmartWallet__NotFromRegistry();
+            revert SmartWallet__NotFromRegistry();
         }
         _;
     }
@@ -202,7 +202,7 @@ contract MpSmartWallet is IAccount, IMpSmartWallet, ReentrancyGuard, Initializab
 
     /// @notice Constructor prevents initialization of implementation contract.
     constructor(address registry) {
-        if (registry == address(0)) revert MpSmartWallet__IntentRegistryZeroAddress();
+        if (registry == address(0)) revert SmartWallet__IntentRegistryZeroAddress();
         intentRegistry = registry;
         _disableInitializers();
     }
@@ -215,7 +215,7 @@ contract MpSmartWallet is IAccount, IMpSmartWallet, ReentrancyGuard, Initializab
      * @param _owner Address that will own this account and sign UserOperations.
      */
     function initialize(address _owner) external initializer {
-        if (_owner == address(0)) revert MpSmartWallet__OwnerIsZeroAddress();
+        if (_owner == address(0)) revert SmartWallet__OwnerIsZeroAddress();
         s_owner = _owner;
     }
 
@@ -281,7 +281,7 @@ contract MpSmartWallet is IAccount, IMpSmartWallet, ReentrancyGuard, Initializab
      */
     function decreaseCommitment(address token, uint256 amount) external onlyRegistry {
         if (amount > s_committedFunds[token]) {
-            revert MpSmartWallet__InvalidCommitmentDecrease();
+            revert SmartWallet__InvalidCommitmentDecrease();
         }
         s_committedFunds[token] -= amount;
         emit CommitmentDecreased(token, amount, s_committedFunds[token]);
@@ -323,7 +323,7 @@ contract MpSmartWallet is IAccount, IMpSmartWallet, ReentrancyGuard, Initializab
         address target,
         uint256 value,
         bytes calldata data,
-        IMpSmartWallet.ComplianceMetadata calldata compliance
+        ISmartWallet.ComplianceMetadata calldata compliance
     ) external payable nonReentrant onlyEntryPointOrOwner {
         _checkCommitment(address(0), value);
         bytes4 selector = data.length >= 4 ? bytes4(data[:4]) : bytes4(0);
@@ -364,7 +364,7 @@ contract MpSmartWallet is IAccount, IMpSmartWallet, ReentrancyGuard, Initializab
      * @param calls The list of `Call`s to execute.
      * @param compliance Compliance metadata for tracking.
      */
-    function executeBatchWithCompliance(Call[] calldata calls, IMpSmartWallet.ComplianceMetadata calldata compliance)
+    function executeBatchWithCompliance(Call[] calldata calls, ISmartWallet.ComplianceMetadata calldata compliance)
         external
         payable
         nonReentrant
@@ -408,10 +408,10 @@ contract MpSmartWallet is IAccount, IMpSmartWallet, ReentrancyGuard, Initializab
         bytes32 intentId,
         uint256 transactionCount,
         bool revertOnFailure,
-        IMpSmartWallet.ComplianceMetadata calldata compliance
+        ISmartWallet.ComplianceMetadata calldata compliance
     ) external nonReentrant onlyRegistry returns (uint256 failedAmount) {
         if (recipients.length == 0 || recipients.length != amounts.length) {
-            revert MpSmartWallet__InvalidBatchInput();
+            revert SmartWallet__InvalidBatchInput();
         }
         uint256 totalValue = 0;
         uint256 totalFailed = 0;
@@ -421,7 +421,7 @@ contract MpSmartWallet is IAccount, IMpSmartWallet, ReentrancyGuard, Initializab
             uint256 amount = amounts[i];
 
             if (recipient == address(0) || amount == 0) {
-                revert MpSmartWallet__InvalidBatchInput();
+                revert SmartWallet__InvalidBatchInput();
             }
 
             totalValue += amount;
@@ -445,7 +445,7 @@ contract MpSmartWallet is IAccount, IMpSmartWallet, ReentrancyGuard, Initializab
 
                 if (revertOnFailure) {
                     // Atomic mode: revert entire transaction on any failure
-                    revert MpSmartWallet__TransferFailed(recipient, token, amount);
+                    revert SmartWallet__TransferFailed(recipient, token, amount);
                 }
                 // Skip mode: continue to next recipient
             } else {
@@ -528,7 +528,7 @@ contract MpSmartWallet is IAccount, IMpSmartWallet, ReentrancyGuard, Initializab
             }
 
             if (value > availableBalance) {
-                revert MpSmartWallet__InsufficientUncommittedFunds();
+                revert SmartWallet__InsufficientUncommittedFunds();
             }
         }
     }

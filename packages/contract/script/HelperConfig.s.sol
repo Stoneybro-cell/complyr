@@ -16,7 +16,7 @@ contract HelperConfig is Script {
                             STATE VARIABLES
     //////////////////////////////////////////////////////////////*/
     NetworkConfig public localNetwork;
-    uint256 constant MANTLE_CHAIN_ID = 5003;
+    uint256 constant FLOW_CHAIN_ID = 545;
     uint256 constant LOCAL_CHAIN_ID = 31337;
     /*//////////////////////////////////////////////////////////////
                                  EVENTS
@@ -39,14 +39,14 @@ contract HelperConfig is Script {
     function getConfigByChainId(uint256 chainId) public returns (NetworkConfig memory) {
         if (chainId == LOCAL_CHAIN_ID) {
             return getAnvilEthConfig();
-        } else if (chainId == MANTLE_CHAIN_ID) {
-            return getMantleEthConfig();
+        } else if (chainId == FLOW_CHAIN_ID) {
+            return getFlowEthConfig();
         } else {
             revert HelperConfig__UnsupportedNetwork();
         }
     }
 
-    function getMantleEthConfig() public pure returns (NetworkConfig memory) {
+    function getFlowEthConfig() public pure returns (NetworkConfig memory) {
         return NetworkConfig({
             implementation:0x37c5c677146A19e61295E40F0518bAf3f94305fE,
             registry: 0x5D16F29E70e90ac48C7F4fb2c1145911a774eFbF

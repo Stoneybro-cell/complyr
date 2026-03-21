@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {MpSmartWallet} from "./MpSmartWallet.sol";
+import {SmartWallet} from "./SmartWallet.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 
 /**
@@ -10,7 +10,7 @@ import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
  * @notice Factory for deploying ERC-1167 minimal proxy clones of Mp Smart Wallet.
  * @custom:security-contact stoneybrocrypto@gmail.com
  */
-contract MpSmartWalletFactory {
+contract SmartWalletFactory {
     /*//////////////////////////////////////////////////////////////
                            STATE VARIABLES
     //////////////////////////////////////////////////////////////*/
@@ -38,20 +38,20 @@ contract MpSmartWalletFactory {
     /**
      * @notice Thrown when trying to construct with an implementation that is not deployed.
      */
-    error MpSmartWalletFactory__ImplementationUndeployed();
+    error SmartWalletFactory__ImplementationUndeployed();
 
     /*//////////////////////////////////////////////////////////////
                                CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
     /**
      * @notice Factory constructor used to initialize the implementation address to use for future
-     *   MpSmartWallet deployments.
+     *   SmartWallet deployments.
      *
-     * @param _implementation The address of the MpSmartWallet implementation which new accounts will proxy to.
+     * @param _implementation The address of the SmartWallet implementation which new accounts will proxy to.
      */
     constructor(address _implementation) {
         if (_implementation.code.length == 0) {
-            revert MpSmartWalletFactory__ImplementationUndeployed();
+            revert SmartWalletFactory__ImplementationUndeployed();
         }
         implementation = _implementation;
     }
@@ -61,7 +61,7 @@ contract MpSmartWalletFactory {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Deploys and initializes a deterministic MpSmartWallet for a specific owner, or returns
+     * @notice Deploys and initializes a deterministic SmartWallet for a specific owner, or returns
      *         the existing account if already deployed.
      *
      * @dev Deployed as an ERC-1167 minimal proxy whose implementation is `this.implementation`.
@@ -86,7 +86,7 @@ contract MpSmartWalletFactory {
         account = Clones.cloneDeterministic(implementation, salt);
 
         // Initialize with specified owner
-        MpSmartWallet(payable(account)).initialize(owner);
+        SmartWallet(payable(account)).initialize(owner);
 
         // Record mapping and emit after successful initialize
         userClones[owner] = account;
