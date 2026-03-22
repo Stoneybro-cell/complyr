@@ -1,10 +1,9 @@
 import { createSmartAccountClient } from "permissionless";
 import { http } from "viem";
 import { flowTestnet } from "viem/chains";
-import { pimlicoBundlerUrl, publicClient } from "./pimlico";
+import { bundlerTransport, publicClient } from "./bundler";
 import { CustomSmartAccount } from "./customSmartAccount";
 
-// Build a Smart Account client around your custom account
 export async function getSmartAccountClient(
   customSmartAccount: CustomSmartAccount
 ) {
@@ -12,6 +11,15 @@ export async function getSmartAccountClient(
     account: customSmartAccount,
     chain: flowTestnet,
     client: publicClient,
-    bundlerTransport: http(),
+    bundlerTransport: bundlerTransport,
+    userOperation: {
+      estimateFeesPerGas: async () => {
+        const fees = await publicClient.estimateFeesPerGas();
+        return {
+          maxFeePerGas: fees.maxFeePerGas ?? 1000000000n,
+          maxPriorityFeePerGas: fees.maxPriorityFeePerGas ?? 1000000000n,
+        };
+      },
+    },
   });
 }

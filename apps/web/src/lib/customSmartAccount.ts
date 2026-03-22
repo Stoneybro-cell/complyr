@@ -5,7 +5,7 @@ import { recoverAddress, hashMessage, concat, pad, toHex, encodeFunctionData, de
 import { SmartWalletFactoryAddress } from "./CA";
 import { SmartWalletFactoryABI } from "./abi/SmartWalletFactoryAbi";
 import { useWallets, useSignMessage, useSignTypedData } from "@privy-io/react-auth";
-import { publicClient } from "./pimlico";
+import { publicClient } from "./bundler";
 import type { SmartAccount } from "viem/account-abstraction";
 
 export type CustomSmartAccount = SmartAccount;
@@ -135,7 +135,7 @@ export default function CustomSmartAccount() {
         },
 
         async getStubSignature() {
-          return "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c" as `0x${string}`;
+          return "0xe9370cc359c3938e0cdf807e8ffbb620f1551c24951b33a7871ee962adfe3a0b5d626ed0147653a41ad8091848efdde3738510fe9ae0d0a965c7f26f5e453f7d1b" as `0x${string}`;
         },
 
         async signMessage({ message }) {
