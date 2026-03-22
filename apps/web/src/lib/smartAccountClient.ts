@@ -12,6 +12,6 @@ export async function getSmartAccountClient(
     account: customSmartAccount,
     chain: flowTestnet,
     client: publicClient,
-    bundlerTransport: http(pimlicoBundlerUrl),
+    bundlerTransport: http(),
   });
 }

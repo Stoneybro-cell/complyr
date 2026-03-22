@@ -51,3 +51,4 @@ coverage/
 # AI Agent configs (auto-generated)
 AGENTS.md
 CLAUDE.md
+skandha/config.json
