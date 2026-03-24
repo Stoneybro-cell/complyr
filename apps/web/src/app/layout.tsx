@@ -18,8 +18,26 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Complyr",
-  description: "Compliance-ready payment Infrastructure",
+  title: "Complyr | Confidential Onchain Finance",
+  description: "Confidential audit infrastructure for onchain business finance built on Flow EVM and Zama fhEVM.",
+  icons: {
+    icon: "/complyrlogo.ico",
+    shortcut: "/complyrlogo.ico",
+    apple: "/complyrlogo.ico",
+  },
+  openGraph: {
+    title: "Complyr",
+    description: "Confidential audit infrastructure for onchain business finance.",
+    url: "https://usecomplyr.vercel.app",
+    siteName: "Complyr",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Complyr",
+    description: "Confidential audit infrastructure for onchain business finance.",
+  },
 };
 
 export default function RootLayout({
