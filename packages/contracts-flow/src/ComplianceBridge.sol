@@ -8,58 +8,124 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {IComplianceBridge} from "./IComplianceBridge.sol";
 
+interface ISmartWalletFactory {
+    function getUserClone(address user) external view returns (address);
+}
+
+interface ISmartWalletOwner {
+    function sOwner() external view returns (address);
+}
+
 /**
  * @title ComplianceBridge
- * @author stoneybro
- * @notice OApp deployed on Flow EVM. Sends batch payment transaction details 
- *         cross-chain to the Sepolia Zama fhEVM for compliance tracking.
+ * @author zion livingstone
+ * @notice Self-funded OApp on Flow EVM that sends compliance data cross-chain to Zama fhEVM.
+ * @dev The bridge uses its own balance to pay all LayerZero fees.
+ *      Callers never need to send msg.value.
+ * @custom:security-contact zionlivingstone4@gmail.com
  */
 contract ComplianceBridge is OApp, IComplianceBridge {
     using OptionsBuilder for bytes;
 
-    // Message type identifiers
+    /*//////////////////////////////////////////////////////////////
+                           MESSAGE TYPES
+    //////////////////////////////////////////////////////////////*/
+
     uint8 public constant MSG_REGISTER = 1;
     uint8 public constant MSG_REPORT = 2;
 
+    /*//////////////////////////////////////////////////////////////
+                           STATE VARIABLES
+    //////////////////////////////////////////////////////////////*/
 
-
-    /// @notice The LayerZero Endpoint ID for the destination chain (Sepolia fhEVM)
+    /// @notice The LayerZero Endpoint ID for the destination chain (Zama Sepolia fhEVM)
     uint32 public targetEid;
 
-    /// @notice Address of the IntentRegistry used to verify caller
+    /// @notice Address of the IntentRegistry authorized to send reports
     address public intentRegistry;
 
-    /// @notice Event emitted when a cross-chain compliance payload is sent
+    /// @notice Address of the SmartWalletFactory for proxy verification
+    address public smartWalletFactory;
+
+    /*//////////////////////////////////////////////////////////////
+                               EVENTS
+    //////////////////////////////////////////////////////////////*/
+
     event CompliancePayloadSent(
         bytes32 indexed flowTxHash,
         address indexed proxyAccount,
-        address[] recipients,
-        uint256[] amounts
+        uint256 recipientCount
     );
 
-    /// @notice Event emitted when a business registration is sent
     event RegistrationSent(address indexed proxyAccount, address indexed masterEOA);
 
-    /// @notice Thrown when an unauthorized caller tries to send reports
+    /*//////////////////////////////////////////////////////////////
+                               ERRORS
+    //////////////////////////////////////////////////////////////*/
+
     error ComplianceBridge__Unauthorized();
+    error ComplianceBridge__InsufficientBridgeBalance();
+
+    /*//////////////////////////////////////////////////////////////
+                             CONSTRUCTOR
+    //////////////////////////////////////////////////////////////*/
 
     /**
      * @param _endpoint The LayerZero Endpoint address on Flow EVM
-     * @param _owner The delegate/owner of the OApp (can configure pathways)
-     * @param _targetEid The exact Eid for Sepolia where Zama fhEVM is deployed
+     * @param _owner The delegate/owner of the OApp
+     * @param _targetEid The Endpoint ID for Zama Sepolia
+     * @param _intentRegistry The IntentRegistry authorized to call sendComplianceReport
+     * @param _smartWalletFactory The SmartWalletFactory for verifying proxy callers
      */
     constructor(
         address _endpoint,
         address _owner,
         uint32 _targetEid,
-        address _intentRegistry
+        address _intentRegistry,
+        address _smartWalletFactory
     ) OApp(_endpoint, _owner) Ownable(_owner) {
         targetEid = _targetEid;
         intentRegistry = _intentRegistry;
+        smartWalletFactory = _smartWalletFactory;
     }
+
+    /*//////////////////////////////////////////////////////////////
+                          ADMIN FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    function setIntentRegistry(address _registry) external onlyOwner {
+        intentRegistry = _registry;
+    }
+
+    function setSmartWalletFactory(address _factory) external onlyOwner {
+        smartWalletFactory = _factory;
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                         ACCESS CONTROL
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @dev Verifies the caller is authorized: owner, IntentRegistry, or a legitimate SmartWallet proxy.
+     */
+    modifier onlyAuthorized() {
+        if (msg.sender != owner() && msg.sender != intentRegistry) {
+            // Check if caller is a legitimate SmartWallet proxy deployed by the factory
+            if (smartWalletFactory == address(0)) revert ComplianceBridge__Unauthorized();
+            address callerOwner = ISmartWalletOwner(msg.sender).sOwner();
+            address registeredClone = ISmartWalletFactory(smartWalletFactory).getUserClone(callerOwner);
+            if (registeredClone != msg.sender) revert ComplianceBridge__Unauthorized();
+        }
+        _;
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                       REGISTRATION (Factory calls this)
+    //////////////////////////////////////////////////////////////*/
 
     /**
      * @notice Sends a one-time registration mapping across the bridge.
+     * @dev Self-funded: uses the bridge's own balance for LayerZero fees.
      * @param proxyAccount The business' Smart Wallet Proxy deployed on Flow EVM.
      * @param masterEOA The personal wallet (MetaMask) that owns the proxy.
      * @param _options Optional gas execution settings on destination.
@@ -68,96 +134,71 @@ contract ComplianceBridge is OApp, IComplianceBridge {
         address proxyAccount,
         address masterEOA,
         bytes calldata _options
-    ) external payable returns (MessagingReceipt memory receipt) {
+    ) external override {
         bytes memory payload = abi.encode(MSG_REGISTER, proxyAccount, masterEOA);
 
-        MessagingFee memory fee = MessagingFee({ nativeFee: msg.value, lzTokenFee: 0 });
+        MessagingFee memory fee = _quote(targetEid, payload, _options, false);
+        if (address(this).balance < fee.nativeFee) revert ComplianceBridge__InsufficientBridgeBalance();
 
-        receipt = _lzSend(
+        _lzSend(
             targetEid,
             payload,
             _options,
             fee,
-            payable(msg.sender)
+            payable(address(this)) // refund excess to bridge treasury
         );
 
         emit RegistrationSent(proxyAccount, masterEOA);
     }
 
-    /**
-     * @notice Checks the required cross-chain gas fee to send the compliance report
-     * @param proxyAccount The business' Smart Wallet Proxy deployed on Flow EVM.
-     * @param masterEOA The personal wallet (MetaMask) that owns the proxy.
-     * @param _options Optional gas execution settings on destination
-     * @return nativeFee The calculated native cross-chain fee
-     */
-    function quoteComplianceCheck(
-        address proxyAccount,
-        address masterEOA,
-        bytes calldata _options
-    ) external view override returns (uint256 nativeFee) {
-        bytes memory payload = abi.encode(MSG_REGISTER, proxyAccount, masterEOA);
-        MessagingFee memory fee = _quote(targetEid, payload, _options, false);
-        return fee.nativeFee;
-    }
+    /*//////////////////////////////////////////////////////////////
+                     COMPLIANCE REPORTING
+    //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Checks the required cross-chain gas fee to send the compliance report
-     * @param report The ComplianceReport struct containing batch transfer details
-     * @param _options Optional gas execution settings on destination
-     * @return nativeFee The calculated native cross-chain fee
-     */
-    function quoteComplianceCheck(
-        ComplianceReport calldata report,
-        bytes calldata _options
-    ) external view override returns (uint256 nativeFee) {
-        bytes memory payload = abi.encode(MSG_REPORT, report);
-        MessagingFee memory fee = _quote(targetEid, payload, _options, false);
-        return fee.nativeFee;
-    }
-
-    /**
-     * @notice Sends a cross-chain compliance report over LayerZero V2
-     * @dev No longer requires auditor specification; natively mapped on Sepolia.
-     * @param report The ComplianceReport struct containing batch transfer details
-     * @param _options LayerZero _options field (execution gas required on Sepolia)
+     * @notice Sends a per-recipient compliance report cross-chain to Zama.
+     * @dev Self-funded: uses the bridge's own balance for LayerZero fees.
+     *      Access restricted to IntentRegistry, owner, or verified SmartWallet proxies.
+     * @param report The ComplianceReport with per-recipient encrypted metadata.
+     * @param _options LayerZero execution options.
      */
     function sendComplianceReport(
         ComplianceReport calldata report,
         bytes calldata _options
-    ) external payable returns (MessagingReceipt memory receipt) {
-        // Enforce access control if the registry is set
-        if (intentRegistry != address(0) && msg.sender != intentRegistry && msg.sender != owner()) {
-            revert ComplianceBridge__Unauthorized();
-        }
-
+    ) external override onlyAuthorized {
         bytes memory payload = abi.encode(MSG_REPORT, report);
 
-        // Pass the message value for LayerZero cross-chain fees
-        MessagingFee memory fee = MessagingFee({ nativeFee: msg.value, lzTokenFee: 0 });
+        MessagingFee memory fee = _quote(targetEid, payload, _options, false);
+        if (address(this).balance < fee.nativeFee) revert ComplianceBridge__InsufficientBridgeBalance();
 
-        receipt = _lzSend(
+        _lzSend(
             targetEid,
             payload,
             _options,
             fee,
-            payable(msg.sender) // refund address for excess native token
+            payable(address(this)) // refund excess to bridge treasury
         );
 
-        emit CompliancePayloadSent(report.flowTxHash, report.proxyAccount, report.recipients, report.amounts);
+        emit CompliancePayloadSent(report.flowTxHash, report.proxyAccount, report.recipients.length);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                           LZ RECEIVE (no-op)
+    //////////////////////////////////////////////////////////////*/
+
     /**
-     * @notice Implement the abstract _lzReceive function. 
-     * @dev As the bridge, we only send reports out; we don't expect responses back.
+     * @notice The bridge only sends, it never receives.
      */
     function _lzReceive(
-        Origin calldata /*_origin*/,
-        bytes32 /*_guid*/,
-        bytes calldata /*_message*/,
-        address /*_executor*/,
-        bytes calldata /*_extraData*/
+        Origin calldata,
+        bytes32,
+        bytes calldata,
+        address,
+        bytes calldata
     ) internal override {
-        // Implementation left empty intentionally; Flow bridge doesn't accept incoming compliance updates.
+        // No-op: Flow bridge doesn't accept incoming messages.
     }
+
+    /// @notice Accept FLOW to fund the bridge treasury.
+    receive() external payable {}
 }

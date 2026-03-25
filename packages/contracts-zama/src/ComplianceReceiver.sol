@@ -10,9 +10,10 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title ComplianceReceiver
- * @author stoneybro
+ * @author zion livingstone
  * @notice OApp deployed on Sepolia fhEVM. Receives the cross-chain LayerZero
  *         message from Flow EVM and logs it in the encrypted ComplianceRegistry.
+ * @custom:security-contact zionlivingstone4@gmail.com
  */
 contract ComplianceReceiver is OApp {
     
@@ -46,15 +47,16 @@ contract ComplianceReceiver is OApp {
     uint8 public constant MSG_REGISTER = 1;
     uint8 public constant MSG_REPORT = 2;
 
+    /// @notice Per-recipient compliance report mirroring the Flow-side struct.
     struct ComplianceReport {
         bytes32 flowTxHash;
         address proxyAccount;
         address[] recipients;
         uint256[] amounts;
-        bytes32 categoryHandle;
-        bytes categoryProof;
-        bytes32 jurisdictionHandle;
-        bytes jurisdictionProof;
+        bytes32[] categoryHandles;
+        bytes[] categoryProofs;
+        bytes32[] jurisdictionHandles;
+        bytes[] jurisdictionProofs;
     }
 
     /**
@@ -91,16 +93,25 @@ contract ComplianceReceiver is OApp {
         } else if (msgType == MSG_REPORT) {
             (, ComplianceReport memory report) = abi.decode(payload, (uint8, ComplianceReport));
 
-            // Let the Registry handle the Pre-Encrypted EIP-712 ciphertexts via external types
+            // Convert bytes32[] to externalEuint8[] for the registry
+            uint256 recipientCount = report.recipients.length;
+            externalEuint8[] memory catHandles = new externalEuint8[](recipientCount);
+            externalEuint8[] memory jurHandles = new externalEuint8[](recipientCount);
+
+            for (uint256 i = 0; i < recipientCount; i++) {
+                catHandles[i] = externalEuint8.wrap(report.categoryHandles[i]);
+                jurHandles[i] = externalEuint8.wrap(report.jurisdictionHandles[i]);
+            }
+
             registry.recordTransaction(
                 report.flowTxHash,
                 report.proxyAccount,
                 report.recipients,
                 report.amounts,
-                externalEuint8.wrap(report.categoryHandle),
-                report.categoryProof,
-                externalEuint8.wrap(report.jurisdictionHandle),
-                report.jurisdictionProof
+                catHandles,
+                report.categoryProofs,
+                jurHandles,
+                report.jurisdictionProofs
             );
 
             emit ComplianceDecodedAndRecorded(report.flowTxHash, report.proxyAccount);

@@ -10,7 +10,7 @@ contract DeploySmartWalletImplementation is Script {
         HelperConfig helperConfig = new HelperConfig();
         HelperConfig.NetworkConfig memory networkConfig = helperConfig.getConfig();
         vm.startBroadcast();
-        SmartWallet wallet = new SmartWallet(networkConfig.registry);
+        SmartWallet wallet = new SmartWallet(networkConfig.registry, networkConfig.complianceBridge);
         vm.stopBroadcast();
         console.log("Implementation Deployed at:", address(wallet));
     }

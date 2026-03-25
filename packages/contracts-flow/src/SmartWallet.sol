@@ -8,6 +8,7 @@ import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.s
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {_packValidationData} from "@account-abstraction/contracts/core/Helpers.sol";
 import {ISmartWallet} from "./ISmartWallet.sol";
+import {IComplianceBridge} from "./IComplianceBridge.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -42,6 +43,9 @@ contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
 
     /// @notice Intent registry authorized to trigger scheduled transfers.
     address public immutable INTENT_REGISTRY;
+
+    /// @notice ComplianceBridge for sending compliance reports to Zama.
+    address public immutable COMPLIANCE_BRIDGE;
 
     /// @notice Amount of funds committed to intents per token (locked)
     /// @dev address(0) represents ETH, other addresses represent ERC20 tokens
@@ -122,6 +126,9 @@ contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
     /// @notice Thrown when registry address is zero.
     error SmartWallet__IntentRegistryZeroAddress();
 
+    /// @notice Thrown when compliance bridge address is zero.
+    error SmartWallet__ComplianceBridgeZeroAddress();
+
     /// @notice Thrown when batch inputs are invalid.
     error SmartWallet__InvalidBatchInput();
 
@@ -192,9 +199,11 @@ contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Constructor prevents initialization of implementation contract.
-    constructor(address registry) {
+    constructor(address registry, address bridge) {
         if (registry == address(0)) revert SmartWallet__IntentRegistryZeroAddress();
+        if (bridge == address(0)) revert SmartWallet__ComplianceBridgeZeroAddress();
         INTENT_REGISTRY = registry;
+        COMPLIANCE_BRIDGE = bridge;
         _disableInitializers();
     }
 
@@ -303,6 +312,18 @@ contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
     }
 
     /**
+     * @notice Sends a compliance report for a single or batch payment to Zama via the bridge.
+     * @dev Can only be called by the EntryPoint or the owner. The bridge self-funds the LZ fee.
+     *      For single payments, pass 1-element arrays. For batch payments, pass N-element arrays.
+     * @param report The per-recipient compliance report.
+     */
+    function reportCompliance(
+        IComplianceBridge.ComplianceReport calldata report
+    ) external onlyEntryPointOrOwner {
+        IComplianceBridge(COMPLIANCE_BRIDGE).sendComplianceReport(report, "");
+    }
+
+    /**
      * @notice Executes a batch of calls from this account.
      *
      * @dev Can only be called by the EntryPoint or the owner of this account.
@@ -344,20 +365,13 @@ contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
         uint256[] calldata amounts,
         bytes32 intentId,
         uint256 transactionCount,
-        bool revertOnFailure,
-        uint256 bridgeFee
+        bool revertOnFailure
     ) external nonReentrant onlyRegistry returns (uint256 failedAmount) {
         if (recipients.length == 0 || recipients.length != amounts.length) {
             revert SmartWallet__InvalidBatchInput();
         }
         uint256 totalValue = 0;
         uint256 totalFailed = 0;
-
-        if (bridgeFee > 0) {
-            _checkCommitment(address(0), bridgeFee);
-            (bool feeSuccess,) = msg.sender.call{value: bridgeFee}("");
-            if (!feeSuccess) revert SmartWallet__TransferFailed(msg.sender, address(0), bridgeFee);
-        }
 
         for (uint256 i; i < recipients.length; i++) {
             address recipient = recipients[i];

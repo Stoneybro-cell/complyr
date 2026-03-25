@@ -3,16 +3,11 @@ pragma solidity ^0.8.19;
 
 /**
  * @title ISmartWallet
- * @author stoneybro
- * @notice Interface for Smart Wallet that the Intent Registry interacts with
- * @custom:security-contact stoneybrocrypto@gmail.com
+ * @author zion livingstone
+ * @notice Interface for Smart Wallet that the Intent Registry interacts with.
+ * @custom:security-contact zionlivingstone4@gmail.com
  */
 interface ISmartWallet {
-    /*//////////////////////////////////////////////////////////////
-                                TYPES
-    //////////////////////////////////////////////////////////////*/
-
-
     /*//////////////////////////////////////////////////////////////
                                 FUNCTIONS
     //////////////////////////////////////////////////////////////*/
@@ -38,9 +33,7 @@ interface ISmartWallet {
      * @param amounts The array of amounts corresponding to each recipient.
      * @param intentId The unique identifier for the intent being executed.
      * @param transactionCount The current transaction number within the intent.
-     * @param transactionCount The current transaction number within the intent.
      * @param revertOnFailure Whether to revert entire transaction on any failure.
-     * @param bridgeFee The fee forwarded to the IntentRegistry for Zama pre-encrypted messaging payloads.
      * @return failedAmount The total amount that failed to transfer (only in skip mode)
      */
     function executeBatchIntentTransfer(
@@ -49,8 +42,7 @@ interface ISmartWallet {
         uint256[] calldata amounts,
         bytes32 intentId,
         uint256 transactionCount,
-        bool revertOnFailure,
-        uint256 bridgeFee
+        bool revertOnFailure
     ) external returns (uint256 failedAmount);
 
     /**

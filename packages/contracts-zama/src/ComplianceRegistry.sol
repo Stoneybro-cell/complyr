@@ -25,16 +25,16 @@ contract ComplianceRegistry is Ownable {
 
     /// @notice A compliant record for a specific business outgoing payment.
     struct TransactionRecord {
-        /// @notice The correlated transaction hash from Flow EVM.
+        /// @notice The correlated transaction hash / intent ID from Flow EVM.
         bytes32 flowTxHash;
         /// @notice The total transaction amounts per recipient (plaintext).
         uint256[] amounts;
         /// @notice Recipients in the batch transfer (plaintext).
         address[] recipients;
-        /// @notice Encrypted category (e.g., 1=Payroll, 2=Contractor, 3=Bonus).
-        euint8 category;
-        /// @notice Encrypted recipient jurisdiction code (e.g., 1=US, 2=EU).
-        euint8 recipientJurisdiction;
+        /// @notice One encrypted category per recipient (e.g., 1=Payroll, 2=Contractor, 3=Bonus).
+        euint8[] categories;
+        /// @notice One encrypted jurisdiction code per recipient (e.g., 1=US, 2=EU).
+        euint8[] jurisdictions;
         /// @notice Timestamp of the compliance record.
         uint256 timestamp;
     }
@@ -190,51 +190,57 @@ contract ComplianceRegistry is Ownable {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Appends a compliance record to a company's ledger.
-     * @dev Accepts `einput` ciphertexts generated securely in the frontend.
-     *      No plaintext is exposed to the mempool. Automatically grants
-     *      Access Control List (ACL) permissions to the Master EOA and ALL active auditors.
+     * @notice Appends a per-recipient compliance record to a company's ledger.
+     * @dev Each recipient gets their own encrypted category and jurisdiction.
+     *      Validates ZKPs per-recipient and grants ACL access to master + auditors.
      *
-     * @param flowTxHash The transaction hash from Flow EVM.
+     * @param flowTxHash The transaction hash or intent ID from Flow EVM.
      * @param proxyAccount The Flow Smart Account that initiated the payment.
-     * @param amount The native token transaction amount.
-     * @param recipientCount Number of recipients in the batch transfer.
-     * @param categoryHandle The Zama EIP-712 pre-encrypted ciphertext handle.
-     * @param categoryProof The Zama Zero Knowledge Proof.
-     * @param jurisdictionHandle The Zama EIP-712 pre-encrypted ciphertext handle.
-     * @param jurisdictionProof The Zama Zero Knowledge Proof.
+     * @param recipients The recipient addresses.
+     * @param amounts The amounts per recipient.
+     * @param categoryHandles Per-recipient Zama EIP-712 pre-encrypted category handles.
+     * @param categoryProofs Per-recipient Zama Zero Knowledge Proofs for categories.
+     * @param jurisdictionHandles Per-recipient Zama EIP-712 pre-encrypted jurisdiction handles.
+     * @param jurisdictionProofs Per-recipient Zama Zero Knowledge Proofs for jurisdictions.
      */
     function recordTransaction(
         bytes32 flowTxHash,
         address proxyAccount,
         address[] memory recipients,
         uint256[] memory amounts,
-        externalEuint8 categoryHandle,
-        bytes calldata categoryProof,
-        externalEuint8 jurisdictionHandle,
-        bytes calldata jurisdictionProof
+        externalEuint8[] memory categoryHandles,
+        bytes[] memory categoryProofs,
+        externalEuint8[] memory jurisdictionHandles,
+        bytes[] memory jurisdictionProofs
     ) external onlyLzReceiver {
         
         address masterEOA = companyMasters[proxyAccount];
         if (masterEOA == address(0)) revert ComplianceRegistry__NotRegistered();
 
-        // 1. Verify the ZKPs and convert the frontend bytes into fhEVM ciphertext handles
-        euint8 catHandle = FHE.fromExternal(categoryHandle, categoryProof);
-        euint8 jurHandle = FHE.fromExternal(jurisdictionHandle, jurisdictionProof);
-
-        // 2. Grant ACL permissions to the Master EOA
-        catHandle = FHE.allowThis(catHandle);
-        catHandle = FHE.allow(catHandle, masterEOA);
-
-        jurHandle = FHE.allowThis(jurHandle);
-        jurHandle = FHE.allow(jurHandle, masterEOA);
-
-        // 3. Grant ACL permissions to all active Auditors
+        uint256 recipientCount = recipients.length;
+        euint8[] memory catHandles = new euint8[](recipientCount);
+        euint8[] memory jurHandles = new euint8[](recipientCount);
         address[] memory auditors = companyAuditors[proxyAccount];
-        for (uint256 i = 0; i < auditors.length; i++) {
-            address activeAuditor = auditors[i];
-            catHandle = FHE.allow(catHandle, activeAuditor);
-            jurHandle = FHE.allow(jurHandle, activeAuditor);
+
+        for (uint256 i = 0; i < recipientCount; i++) {
+            // 1. Verify the ZKPs and convert the frontend bytes into fhEVM ciphertext handles
+            euint8 cat = FHE.fromExternal(categoryHandles[i], categoryProofs[i]);
+            euint8 jur = FHE.fromExternal(jurisdictionHandles[i], jurisdictionProofs[i]);
+
+            // 2. Grant ACL permissions to the contract and Master EOA
+            cat = FHE.allowThis(cat);
+            cat = FHE.allow(cat, masterEOA);
+            jur = FHE.allowThis(jur);
+            jur = FHE.allow(jur, masterEOA);
+
+            // 3. Grant ACL permissions to all active Auditors
+            for (uint256 j = 0; j < auditors.length; j++) {
+                cat = FHE.allow(cat, auditors[j]);
+                jur = FHE.allow(jur, auditors[j]);
+            }
+
+            catHandles[i] = cat;
+            jurHandles[i] = jur;
         }
 
         // 4. Store the record in the company's private ledger
@@ -243,8 +249,8 @@ contract ComplianceRegistry is Ownable {
                 flowTxHash: flowTxHash,
                 amounts: amounts,
                 recipients: recipients,
-                category: catHandle,
-                recipientJurisdiction: jurHandle,
+                categories: catHandles,
+                jurisdictions: jurHandles,
                 timestamp: block.timestamp
             })
         );
@@ -279,17 +285,17 @@ contract ComplianceRegistry is Ownable {
     }
 
     /**
-     * @notice Returns the encrypted category handle for a specific record.
+     * @notice Returns the encrypted category handle for a specific recipient in a record.
      * @dev The caller (fhevmjs) must provide an EIP-712 signature matching the Master or Auditor to decrypt.
      */
-    function getEncryptedCategory(address proxyAccount, uint256 index) external view returns (euint8) {
-        return companyLedgers[proxyAccount][index].category;
+    function getEncryptedCategory(address proxyAccount, uint256 recordIndex, uint256 recipientIndex) external view returns (euint8) {
+        return companyLedgers[proxyAccount][recordIndex].categories[recipientIndex];
     }
 
     /**
-     * @notice Returns the encrypted jurisdiction handle for a specific record.
+     * @notice Returns the encrypted jurisdiction handle for a specific recipient in a record.
      */
-    function getEncryptedJurisdiction(address proxyAccount, uint256 index) external view returns (euint8) {
-        return companyLedgers[proxyAccount][index].recipientJurisdiction;
+    function getEncryptedJurisdiction(address proxyAccount, uint256 recordIndex, uint256 recipientIndex) external view returns (euint8) {
+        return companyLedgers[proxyAccount][recordIndex].jurisdictions[recipientIndex];
     }
 }

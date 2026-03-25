@@ -50,14 +50,6 @@ contract IntentRegistry is ReentrancyGuard {
         bool revertOnFailure;
         /// @notice Total amount that failed to transfer (for recovery)
         uint256 failedAmount;
-        /// @notice Cross-chain Zama category ciphertext
-        bytes32 categoryHandle;
-        /// @notice Cross-chain Zama category proof
-        bytes categoryProof;
-        /// @notice Cross-chain Zama jurisdiction ciphertext
-        bytes32 jurisdictionHandle;
-        /// @notice Cross-chain Zama jurisdiction proof
-        bytes jurisdictionProof;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -205,7 +197,9 @@ contract IntentRegistry is ReentrancyGuard {
     //////////////////////////////////////////////////////////////*/
 
     /**
-     * @notice Creates a new multi-recipient intent for the sender/wallet
+     * @notice Creates a new multi-recipient intent for the sender/wallet.
+     * @dev Compliance data is sent to Zama once at creation time (not at each execution).
+     *      Each recipient gets their own encrypted category and jurisdiction.
      *
      * @param token The token address
      * @param name The name of the intent
@@ -214,7 +208,11 @@ contract IntentRegistry is ReentrancyGuard {
      * @param duration The total duration of the intent in seconds
      * @param interval The interval between transactions in seconds
      * @param transactionStartTime The start time of the transaction (0 for immediate start)
-     * @param revertOnFailure Whether to revert entire transaction on any failure (true) or skip failed transfers (false)
+     * @param revertOnFailure Whether to revert entire transaction on any failure
+     * @param categoryHandles Per-recipient FHE-encrypted category handles
+     * @param categoryProofs Per-recipient ZKPs for category ciphertexts
+     * @param jurisdictionHandles Per-recipient FHE-encrypted jurisdiction handles
+     * @param jurisdictionProofs Per-recipient ZKPs for jurisdiction ciphertexts
      * @return intentId The unique identifier for the created intent
      */
     function createIntent(
@@ -226,10 +224,10 @@ contract IntentRegistry is ReentrancyGuard {
         uint256 interval,
         uint256 transactionStartTime,
         bool revertOnFailure,
-        bytes32 categoryHandle,
-        bytes calldata categoryProof,
-        bytes32 jurisdictionHandle,
-        bytes calldata jurisdictionProof
+        bytes32[] calldata categoryHandles,
+        bytes[] calldata categoryProofs,
+        bytes32[] calldata jurisdictionHandles,
+        bytes[] calldata jurisdictionProofs
     ) external returns (bytes32) {
         address wallet = msg.sender;
 
@@ -250,6 +248,14 @@ contract IntentRegistry is ReentrancyGuard {
         if (recipients.length == 0) revert IntentRegistry__NoRecipients();
         if (recipients.length != amounts.length) revert IntentRegistry__ArrayLengthMismatch();
         if (recipients.length > MAX_RECIPIENTS) revert IntentRegistry__TooManyRecipients();
+
+        ///@notice Validate compliance arrays match recipients length
+        if (
+            categoryHandles.length != recipients.length ||
+            categoryProofs.length != recipients.length ||
+            jurisdictionHandles.length != recipients.length ||
+            jurisdictionProofs.length != recipients.length
+        ) revert IntentRegistry__ArrayLengthMismatch();
 
         ///@notice Validate timing parameters
         if (duration == 0 || duration > MAX_DURATION) revert IntentRegistry__InvalidDuration();
@@ -288,7 +294,7 @@ contract IntentRegistry is ReentrancyGuard {
         uint256 actualStartTime = transactionStartTime == 0 ? block.timestamp : transactionStartTime;
         uint256 actualEndTime = actualStartTime + duration;
 
-        ///@notice Store the intent
+        ///@notice Store the intent (no compliance data stored — it's sent once below)
         walletIntents[wallet][intentId] = Intent({
             id: intentId,
             wallet: wallet,
@@ -304,11 +310,7 @@ contract IntentRegistry is ReentrancyGuard {
             latestTransactionTime: 0,
             active: true,
             revertOnFailure: revertOnFailure,
-            failedAmount: 0,
-            categoryHandle: categoryHandle,
-            categoryProof: categoryProof,
-            jurisdictionHandle: jurisdictionHandle,
-            jurisdictionProof: jurisdictionProof
+            failedAmount: 0
         });
 
         ///@notice Update the wallet's committed funds for this token
@@ -317,6 +319,21 @@ contract IntentRegistry is ReentrancyGuard {
 
         ///@notice Add the intent id to the wallet's active intent ids
         walletActiveIntentIds[wallet].push(intentId);
+
+        ///@notice Send compliance data to Zama once at creation (bridge self-funds the LZ fee)
+        if (complianceBridge != address(0)) {
+            IComplianceBridge.ComplianceReport memory report = IComplianceBridge.ComplianceReport({
+                flowTxHash: intentId,
+                proxyAccount: wallet,
+                recipients: recipients,
+                amounts: amounts,
+                categoryHandles: categoryHandles,
+                categoryProofs: categoryProofs,
+                jurisdictionHandles: jurisdictionHandles,
+                jurisdictionProofs: jurisdictionProofs
+            });
+            IComplianceBridge(complianceBridge).sendComplianceReport(report, "");
+        }
 
         emit IntentCreated(
             wallet,
@@ -422,7 +439,9 @@ contract IntentRegistry is ReentrancyGuard {
     }
 
     /**
-     * @notice Executes an intent by transferring funds to all recipients
+     * @notice Executes an intent by transferring funds to all recipients.
+     * @dev Pure payment execution — no compliance bridge interaction.
+     *      Compliance data was already sent to Zama at intent creation time.
      *
      * @param wallet The wallet address that owns the intent
      * @param intentId The intent id to execute
@@ -464,26 +483,7 @@ contract IntentRegistry is ReentrancyGuard {
         walletCommittedFunds[wallet][intent.token] -= totalAmount;
         ISmartWallet(wallet).decreaseCommitment(intent.token, totalAmount);
 
-        ///@notice Quote the required bridging fee for compliance logging
-        uint256 bridgeFee = 0;
-        IComplianceBridge.ComplianceReport memory report;
-
-        if (complianceBridge != address(0)) {
-            report = IComplianceBridge.ComplianceReport({
-                flowTxHash: keccak256(abi.encode(intentId, currentTransactionCount)),
-                proxyAccount: wallet,
-                recipients: intent.recipients,
-                amounts: intent.amounts,
-                categoryHandle: intent.categoryHandle,
-                categoryProof: intent.categoryProof,
-                jurisdictionHandle: intent.jurisdictionHandle,
-                jurisdictionProof: intent.jurisdictionProof
-            });
-
-            bridgeFee = IComplianceBridge(complianceBridge).quoteComplianceCheck(report, "");
-        }
-
-        ///@notice Execute the batch intent transfer with token, intentId and transaction count
+        ///@notice Execute the batch transfer — pure payment, no bridge fee
         uint256 failedAmount = ISmartWallet(wallet)
             .executeBatchIntentTransfer(
                 intent.token,
@@ -491,14 +491,8 @@ contract IntentRegistry is ReentrancyGuard {
                 intent.amounts,
                 intentId,
                 currentTransactionCount,
-                intent.revertOnFailure,
-                bridgeFee
+                intent.revertOnFailure
             );
-
-        ///@notice Forward the compliance payload via LayerZero natively using the withdrawn fee
-        if (bridgeFee > 0) {
-            IComplianceBridge(complianceBridge).sendComplianceReport{value: bridgeFee}(report, "");
-        }
 
         ///@notice Track failed amounts for recovery
         if (failedAmount > 0) {

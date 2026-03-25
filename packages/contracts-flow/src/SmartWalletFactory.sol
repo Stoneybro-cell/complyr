@@ -103,11 +103,9 @@ contract SmartWalletFactory {
         if (predictedAddress.code.length != 0) {
             return predictedAddress;
         }
-        // Get cross-chain fee first to ensure we reserve enough for the bridge
-        uint256 lzFee = IComplianceBridge(complianceBridge).quoteComplianceCheck(predictedAddress, owner, "");
 
-        // Send test amount to the new account only if we have enough for both drip AND fee
-        uint256 dripAmount = address(this).balance >= (TEST_AMOUNT + lzFee) ? TEST_AMOUNT : 0;
+        // Send test amount to the new account if we have enough
+        uint256 dripAmount = address(this).balance >= TEST_AMOUNT ? TEST_AMOUNT : 0;
 
         // Deploy new account
         account = Clones.cloneDeterministic(IMPLEMENTATION, salt, dripAmount);
@@ -118,10 +116,8 @@ contract SmartWalletFactory {
         // Record mapping and emit after successful initialize
         userClones[owner] = account;
 
-        // Auto-Register the business on Zama Sepolia using the factory's balance
-        if (address(this).balance >= lzFee) {
-            IComplianceBridge(complianceBridge).registerBusiness{value: lzFee}(account, owner, "");
-        }
+        // Auto-Register the business on Zama Sepolia (bridge self-funds the LZ fee)
+        IComplianceBridge(complianceBridge).registerBusiness(account, owner, "");
 
         emit AccountCreated(account, owner);
     }
