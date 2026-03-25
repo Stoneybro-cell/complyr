@@ -1,64 +1,36 @@
-const useCases = [
-  {
-    title: "Startup with a global remote team",
-    instruction: "Monthly payroll: Alice $8,000 W2 California, Bob £5,000 contractor UK, Dayo ₦1,200,000 contractor Nigeria — encrypted, automated, for 12 months",
-    outcomes: [
-      "All salary amounts encrypted on fhEVM",
-      "Jurisdiction and tax category tagged per recipient",
-      "Payments execute automatically each month on Flow",
-    ],
-  },
-  {
-    title: "Agency paying quarterly 1099 contractors",
-    instruction: "Pay 8 US-based 1099 contractors $12,000 each quarterly for 2025 — label Q1–Q4, encrypt amounts",
-    outcomes: [
-      "Encrypted per-recipient salary records",
-      "1099 category stored confidentially on-chain",
-      "One-click auditor access grant at tax time",
-    ],
-  },
-  {
-    title: "DAO paying grant recipients",
-    instruction: "Monthly grants to 5 builders — amounts private, jurisdiction tracked, schedule automated for 6 months",
-    outcomes: [
-      "Grant amounts hidden from public view",
-      "Treasury spending verifiable without revealing individual amounts",
-      "Fully non-custodial — DAO retains control throughout",
-    ],
-  },
-];
+import React from 'react';
 
 export default function UseCases() {
   return (
-    <section className="py-20 md:py-28 lg:py-32 bg-secondary">
-      <div className="max-w-6xl mx-auto px-6">
-        <h2 className="text-3xl md:text-4xl font-semibold leading-tight tracking-tight">
-          Real payroll scenarios Complyr solves today
-        </h2>
-
-        <div className="grid md:grid-cols-3 gap-8 mt-12">
-          {useCases.map((useCase, index) => (
-            <div key={index} className="bg-background rounded-lg p-6 border border-border">
-              <h3 className="text-lg font-semibold mb-4">{useCase.title}</h3>
-
-              <div className="mb-6">
-                <span className="text-xs uppercase tracking-wider text-muted-foreground">Instruction</span>
-                <p className="text-sm italic text-muted-foreground mt-1">"{useCase.instruction}"</p>
-              </div>
-
-              <div>
-                <span className="text-xs uppercase tracking-wider text-muted-foreground">Outcome</span>
-                <ul className="mt-2 space-y-2">
-                  {useCase.outcomes.map((outcome, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                      <div className="w-1 h-1 rounded-full bg-primary mt-2 flex-shrink-0" />
-                      <span>{outcome}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          ))}
+    <section className="py-32 px-8 md:px-24 bg-[#131313] border-y border-white/5">
+      <div className="flex flex-col lg:flex-row gap-20">
+        <div className="lg:w-1/3">
+          <h2 className="font-['Inter'] text-[0.6875rem] uppercase tracking-widest text-[#919191] mb-6">Who builds with Complyr</h2>
+          <p className="font-['Inter'] text-sm text-[#474747] max-w-xs uppercase leading-loose tracking-tighter">
+            From decentralized protocols to established fintech platforms moving to the ledger.
+          </p>
+        </div>
+        <div className="lg:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-16">
+          <div className="space-y-4">
+            <span className="font-['Inter'] text-[0.625rem] text-[#ffffff]">01</span>
+            <h5 className="font-['Public_Sans'] text-xl font-bold text-white uppercase">Crypto-native startups</h5>
+            <p className="font-['Inter'] text-sm text-[#c6c6c6]">Streamlining vendor payments with built-in KYC/AML metadata.</p>
+          </div>
+          <div className="space-y-4">
+            <span className="font-['Inter'] text-[0.625rem] text-[#ffffff]">02</span>
+            <h5 className="font-['Public_Sans'] text-xl font-bold text-white uppercase">DAOs &amp; Treasuries</h5>
+            <p className="font-['Inter'] text-sm text-[#c6c6c6]">Transparent governance-to-payment flows with auditable trails.</p>
+          </div>
+          <div className="space-y-4">
+            <span className="font-['Inter'] text-[0.625rem] text-[#ffffff]">03</span>
+            <h5 className="font-['Public_Sans'] text-xl font-bold text-white uppercase">Onchain Treasury</h5>
+            <p className="font-['Inter'] text-sm text-[#c6c6c6]">Enterprise-grade reporting for institutional funds moving onchain.</p>
+          </div>
+          <div className="space-y-4">
+            <span className="font-['Inter'] text-[0.625rem] text-[#ffffff]">04</span>
+            <h5 className="font-['Public_Sans'] text-xl font-bold text-white uppercase">Payroll &amp; HR</h5>
+            <p className="font-['Inter'] text-sm text-[#c6c6c6]">Compliant international payroll settlement in stablecoins.</p>
+          </div>
         </div>
       </div>
     </section>

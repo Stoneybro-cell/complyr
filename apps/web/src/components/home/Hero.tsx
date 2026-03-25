@@ -1,58 +1,30 @@
-import { ArrowRight } from 'lucide-react';
+import React from 'react';
 import Link from 'next/link';
 
 export default function Hero() {
   return (
-    <section className="pt-32 pb-20 px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="max-w-4xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 border border-gray-200 text-xs text-gray-500 mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
-            Built for Flow EVM · Private compliance via Zama fhEVM
-          </div>
-
-          <h1 className="text-5xl lg:text-6xl font-semibold text-gray-900 leading-tight mb-6">
-            Global payroll that's compliant, private, and fully on-chain
-          </h1>
-          <p className="text-xl text-gray-600 leading-relaxed mb-12 max-w-3xl">
-            Complyr lets businesses run automated cross-border payroll with built-in tax classification
-            and jurisdiction tracking — while keeping sensitive salary data encrypted on-chain via
-            fully homomorphic encryption.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 mb-16">
-            <Link
-              href="/wallet"
-              className="px-6 py-3 bg-gray-900 text-white font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
-            >
-              Launch App
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-            <a
-              href="https://github.com/Stoneybro/complyr"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-6 py-3 border border-gray-300 text-gray-900 font-medium hover:border-gray-400 transition-colors text-center"
-            >
-              View on GitHub
-            </a>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="border-l-2 border-gray-900 pl-4">
-              <p className="text-sm text-gray-900 font-medium">Encrypted salary data via fhEVM</p>
-            </div>
-            <div className="border-l-2 border-gray-900 pl-4">
-              <p className="text-sm text-gray-900 font-medium">Automated recurring payroll on Flow</p>
-            </div>
-            <div className="border-l-2 border-gray-900 pl-4">
-              <p className="text-sm text-gray-900 font-medium">W2, 1099, contractor classification</p>
-            </div>
-            <div className="border-l-2 border-gray-900 pl-4">
-              <p className="text-sm text-gray-900 font-medium">Gasless for employees, always</p>
-            </div>
+    <section className="relative min-h-screen flex flex-col justify-center px-8 md:px-24 pt-20 border-b-[0.5px] border-white/10">
+      <div className="max-w-5xl z-10">
+        <p className="font-['Inter'] text-[0.6875rem] uppercase tracking-widest text-[#919191] mb-8">Infrastructure Standard 01-A</p>
+        <h1 className="font-['Public_Sans'] text-5xl md:text-[5.5rem] leading-[1.05] font-bold tracking-tight text-white mb-10">
+          The compliance layer for onchain business payments.
+        </h1>
+        <p className="font-['Inter'] text-xl md:text-2xl text-[#c6c6c6] max-w-3xl leading-relaxed mb-12">
+          Complyr attaches encrypted, auditable compliance records to every payment your business makes on-chain. Bridging the gap between cryptographic settlement and corporate regulatory requirements.
+        </p>
+        <div className="flex flex-col md:flex-row gap-8 items-start md:items-center">
+          <Link href="/login" className="flex items-center justify-center bg-[#ffffff] text-[#1a1c1c] px-10 py-5 font-['Inter'] text-[0.75rem] font-black uppercase tracking-widest hover:bg-[#c7c6c6] transition-colors">
+            INITIATE DEPLOYMENT
+          </Link>
+          <div className="flex items-center gap-4 text-[#474747]">
+            <span className="w-12 h-[1px] bg-[#474747]"></span>
+            <span className="font-['Inter'] text-[0.6875rem] uppercase tracking-widest">Live on Flow EVM Testnet</span>
           </div>
         </div>
+      </div>
+      {/* Background Detail */}
+      <div className="absolute right-0 bottom-0 w-1/2 h-full opacity-20 hidden lg:block overflow-hidden pointer-events-none">
+        <img alt="abstract architectural geometry" className="w-full h-full object-cover grayscale contrast-125" data-alt="high contrast monochrome macro shot of brutalist concrete architecture with sharp shadows and geometric lines" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVXikFXNQ1V5v0I2A61mAd1rwcLBLZygrF3cq4IH0xxiZY2H29Mhbx-6O8iHrXgprLtlxo9Z2qG5ba9LKv9gOf7Rza5mq3WB3XK6SlZ_9r2sKfl6FZAcyvCJzLC1ybVXqxfoG2Y2CkoRgdaaa5reQ7jS4CV3oCDlvQ6wD4aiJaZNz8XwS3x9ek8-hXgNwo0galcEtjjHcytZH7vUP838MM4Xiu17sTsZMkwEAW9h-OkNIrMxW5k_Y-duV9blM-I5bzeZEuIbetNfA"/>
       </div>
     </section>
   );

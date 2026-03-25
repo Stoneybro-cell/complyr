@@ -1,72 +1,22 @@
-'use client';
-
-import { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 
 export default function Navigation() {
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   return (
-    <nav
-      className={`fixed top-0 w-full z-50 transition-all duration-200 ${
-        isScrolled ? 'bg-white/95 backdrop-blur-sm border-b border-gray-200' : 'bg-white'
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center gap-1">
-              <Image src="/complyrlogo.svg" alt="Complyr" width={80} height={22} className="h-6 w-auto" />
-              <div className="text-2xl font-bold">Complyr</div>
-            </Link>
-
-          </div>
-
-          <div className="hidden md:flex items-center space-x-8">
-            <a href="#problem" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-              Problem
-            </a>
-            <a href="#features" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-              Features
-            </a>
-            <a href="#how-it-works" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-              How It Works
-            </a>
-            <a href="#technology" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-              Technology
-            </a>
-            <a
-              href="https://github.com/Stoneybro/complyr"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              GitHub
-            </a>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <Link href="/wallet" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-              Sign In
-            </Link>
-            <Link
-              href="/wallet"
-              className="px-4 py-2 bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors"
-            >
-              Launch App
-            </Link>
-          </div>
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#131313] border-b-[0.5px] border-white/10">
+      <div className="flex justify-between items-center w-full px-8 py-4 max-w-[1440px] mx-auto">
+        <div className="flex items-center gap-3">
+          <img alt="COMPLYR Icon" className="h-6 w-auto" src="https://lh3.googleusercontent.com/aida/ADBb0uh0Bh2x6YYy0f3uej6EN_-ZPlzLlfwCFF4F0YwAc7efktvEW7cPU8ZpeYMmb98AVmVj9E1FX-v1MqnkRWLkAL_0XTygXu8PcChq-zUv0jnXyfJXUu_bYukn0c4gwgJ7bElL36VBzuGb9ZRz5szbE1GND_68vkkUUokQQaITYEF7db7jnWDiGDYE8HnK9sAzoP6q_9lK-Km06y7SSvh84nBZEHwcGQFVEyuyRbEqxo7TE3uIi--n1yOBL43f3YHhnTGQY83USCF_"/>
+          <span className="font-['Public_Sans'] font-bold uppercase tracking-[0.1em] text-white text-[1.125rem] leading-none">COMPLYR</span>
         </div>
+        <nav className="hidden md:flex items-center gap-12">
+          <Link className="font-['Public_Sans'] uppercase tracking-[0.05em] text-[0.6875rem] font-medium text-white border-b border-white pb-1" href="/login">Demo</Link>
+          <Link className="font-['Public_Sans'] uppercase tracking-[0.05em] text-[0.6875rem] font-medium text-gray-500 hover:text-white transition-colors duration-200" href="https://github.com/Stoneybro/complyr#readme" target="_blank" rel="noopener noreferrer">Docs</Link>
+        </nav>
+        <Link href="/login" className="flex items-center justify-center bg-[#ffffff] text-[#1a1c1c] px-6 py-2 font-['Public_Sans'] uppercase tracking-[0.05em] text-[0.6875rem] font-bold transition-all duration-300 hover:bg-white/90">
+          TRY THE DEMO
+        </Link>
       </div>
-    </nav>
+    </header>
   );
 }

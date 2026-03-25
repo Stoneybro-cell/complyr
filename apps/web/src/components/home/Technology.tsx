@@ -1,78 +1,51 @@
+import React from 'react';
+
 export default function Technology() {
-  const layers = [
-    {
-      title: 'Execution layer — Flow EVM',
-      items: [
-        'ERC-4337 smart accounts with gasless paymaster — recipients never pay gas',
-        'IntentRegistry: on-chain payment scheduler with commitment tracking',
-        'Keeper automation triggers each payment cycle',
-        'Contracts written in Solidity 0.8.28, deployed to Flow EVM testnet',
-      ],
-    },
-    {
-      title: 'Privacy layer — Zama fhEVM',
-      items: [
-        'ConfidentialPayroll.sol: stores encrypted salary (euint64), jurisdiction (euint8), category (euint8)',
-        'Zama TFHE library for on-chain FHE operations',
-        'ACL-based access control: employers grant selective decrypt per record per address',
-        'Deployed to Zama fhEVM testnet; record ID stored alongside Flow intent',
-      ],
-    },
-    {
-      title: 'Authentication',
-      items: [
-        'Privy embedded wallets — email and social login, no seed phrases for end users',
-        'Deterministic smart account addresses via ERC-1167 minimal proxy factory',
-        'One smart account per user, deployed on first use',
-      ],
-    },
-    {
-      title: 'Indexing and data',
-      items: [
-        'Envio HyperIndex for real-time transaction history on Flow EVM',
-        'GraphQL API for compliance dashboard queries',
-        'Neon Postgres + Drizzle ORM for contact and reference data',
-      ],
-    },
-    {
-      title: 'Frontend',
-      items: [
-        'Next.js 16 App Router, Tailwind CSS v4, Shadcn UI',
-        'Viem + Permissionless.js for AA transaction construction',
-        'TanStack Query for server state, Sonner for toast notifications',
-      ],
-    },
-  ];
-
   return (
-    <section id="technology" className="py-20 px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
-        <h2 className="text-4xl font-semibold text-gray-900 mb-16">
-          Built on production-grade Web3 infrastructure
-        </h2>
-
-        <div className="space-y-12">
-          {layers.map((layer, index) => (
-            <div key={index} className="border-t border-gray-200 pt-8">
-              <div className="grid lg:grid-cols-12 gap-8">
-                <div className="lg:col-span-4">
-                  <h3 className="text-xl font-semibold text-gray-900">{layer.title}</h3>
-                </div>
-                <div className="lg:col-span-8">
-                  <ul className="space-y-3">
-                    {layer.items.map((item, i) => (
-                      <li key={i} className="flex items-start">
-                        <span className="mr-3 mt-1.5 w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0" />
-                        <span className="text-gray-700">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          ))}
+    <section className="py-32 px-8 md:px-24 bg-[#0e0e0e] overflow-hidden">
+      <h2 className="font-['Public_Sans'] text-4xl font-black mb-20 text-center tracking-widest uppercase text-white/40">Technical Stack</h2>
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-12 items-center opacity-60">
+        <div className="text-center space-y-4">
+          <div className="font-['Inter'] text-[0.625rem] text-[#919191]">EXECUTION</div>
+          <div className="text-white font-bold tracking-tight text-lg">FLOW EVM</div>
+        </div>
+        <div className="text-center space-y-4">
+          <div className="font-['Inter'] text-[0.625rem] text-[#919191]">CONFIDENTIALITY</div>
+          <div className="text-white font-bold tracking-tight text-lg">ZAMA FHEVM</div>
+        </div>
+        <div className="text-center space-y-4">
+          <div className="font-['Inter'] text-[0.625rem] text-[#919191]">MESSAGING</div>
+          <div className="text-white font-bold tracking-tight text-lg">LAYERZERO V2</div>
+        </div>
+        <div className="text-center space-y-4">
+          <div className="font-['Inter'] text-[0.625rem] text-[#919191]">AUTOMATION</div>
+          <div className="text-white font-bold tracking-tight text-lg">CHAINLINK</div>
+        </div>
+        <div className="text-center space-y-4">
+          <div className="font-['Inter'] text-[0.625rem] text-[#919191]">INDEXING</div>
+          <div className="text-white font-bold tracking-tight text-lg">ENVIO</div>
         </div>
       </div>
+      <div className="mt-32 max-w-4xl mx-auto border border-[#474747]/30 bg-[#131313] p-8">
+        <div className="flex justify-between border-b border-[#474747]/30 pb-4 mb-8">
+          <span className="font-['Inter'] text-[0.6875rem] text-[#ffffff]">AUDIT_PROTOCOL_SCHEMA.JSON</span>
+          <span className="font-['Inter'] text-[0.6875rem] text-[#919191]">V1.0</span>
+        </div>
+        <pre className="font-mono text-[0.75rem] text-[#c6c6c6] overflow-x-auto">{`{
+  "protocol": "COMPLYR",
+  "version": "v1.0.4",
+  "engine": {
+    "execution": "Flow_EVM_Mainnet",
+    "privacy": "FHE_Zama_256bit",
+    "verification": "EIP-712_Typed_Data"
+  },
+  "compliance_hooks": [
+    "JURISDICTION_LOCK",
+    "EXPENDITURE_TAGGING",
+    "TAX_ID_ENCRYPTION"
+  ]
+}`}</pre>
+      </div>    
     </section>
   );
 }

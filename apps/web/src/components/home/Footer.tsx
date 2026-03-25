@@ -1,99 +1,39 @@
+import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 
 export default function Footer() {
   return (
-    <footer className="py-16 px-6 lg:px-8 border-t border-gray-200">
-      <div className="max-w-6xl mx-auto">
-        <div className="grid md:grid-cols-12 gap-12 mb-12">
-          <div className="col-span-1 md:col-span-2">
-            <Image src="/complyrlogo.svg" alt="Complyr" width={120} height={32} className="h-8 w-auto mb-4" />
-            <p className="text-sm text-gray-600 max-w-xs leading-relaxed">
-              Private, compliant, automated payroll for global teams — built on Flow EVM and Zama fhEVM.
-            </p>
+    <footer className="bg-[#0E0E0E] border-t-[0.5px] border-white/10">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full px-12 py-20 max-w-[1440px] mx-auto">
+        <div>
+          <div className="flex items-center gap-3 mb-8">
+            <img alt="COMPLYR Icon" className="h-6 w-auto" src="https://lh3.googleusercontent.com/aida/ADBb0uh0Bh2x6YYy0f3uej6EN_-ZPlzLlfwCFF4F0YwAc7efktvEW7cPU8ZpeYMmb98AVmVj9E1FX-v1MqnkRWLkAL_0XTygXu8PcChq-zUv0jnXyfJXUu_bYukn0c4gwgJ7bElL36VBzuGb9ZRz5szbE1GND_68vkkUUokQQaITYEF7db7jnWDiGDYE8HnK9sAzoP6q_9lK-Km06y7SSvh84nBZEHwcGQFVEyuyRbEqxo7TE3uIi--n1yOBL43f3YHhnTGQY83USCF_"/>
+            <span className="font-['Public_Sans'] font-bold uppercase tracking-[0.1em] text-white text-[1.125rem] leading-none">COMPLYR</span>
           </div>
-
-          <div className="md:col-span-2">
-            <h4 className="text-sm font-semibold text-gray-900 mb-4">Product</h4>
-            <ul className="space-y-3">
-              <li>
-                <a href="#features" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  Features
-                </a>
-              </li>
-              <li>
-                <a href="#how-it-works" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  How It Works
-                </a>
-              </li>
-              <li>
-                <a href="#technology" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                  Technology
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          <div className="md:col-span-3">
-            <h4 className="text-sm font-semibold text-gray-900 mb-4">Built with</h4>
-            <ul className="space-y-3">
-              <li>
-                <a
-                  href="https://flow.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  Flow EVM
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://zama.ai"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  Zama fhEVM
-                </a>
-              </li>
-
-            </ul>
-          </div>
-
-          <div className="md:col-span-3">
-            <h4 className="text-sm font-semibold text-gray-900 mb-4">Connect</h4>
-            <ul className="space-y-3">
-              <li>
-                <a
-                  href="https://github.com/Stoneybro/complyr"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  GitHub
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://twitter.com/stoneybro"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  Twitter
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="border-t border-gray-200 pt-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <p className="text-sm text-gray-600">© 2026 Complyr</p>
-          <p className="text-sm text-gray-600">
-            Built for PL Genesis Hackathon 2026 · Flow + Zama tracks · by Zion Livingstone
+          <p className="font-['Inter'] text-[0.6875rem] uppercase tracking-widest text-gray-600 leading-relaxed max-w-md">
+            © 2024 COMPLYR INFRASTRUCTURE. BUILT FOR ONCHAIN COMPLIANCE. THE INFRASTRUCTURE STANDARD FOR GLOBAL TREASURY OPERATIONS.
           </p>
         </div>
+        <div className="grid grid-cols-2 gap-12">
+          <div className="flex flex-col gap-4">
+            <span className="font-['Inter'] text-[0.625rem] text-[#919191] mb-4">RESOURCES</span>
+            <Link className="font-['Inter'] text-[0.6875rem] uppercase tracking-widest text-gray-600 hover:text-white transition-colors" href="/login">Demo</Link>
+            <Link className="font-['Inter'] text-[0.6875rem] uppercase tracking-widest text-gray-600 hover:text-white transition-colors" href="https://github.com/Stoneybro/complyr#readme" target="_blank" rel="noopener noreferrer">Docs</Link>
+            <Link className="font-['Inter'] text-[0.6875rem] uppercase tracking-widest text-gray-600 hover:text-white transition-colors" href="https://github.com/Stoneybro/complyr" target="_blank" rel="noopener noreferrer">GitHub</Link>
+            <Link className="font-['Inter'] text-[0.6875rem] uppercase tracking-widest text-gray-600 hover:text-white transition-colors" href="https://github.com/Stoneybro/complyr/tree/main/packages/contracts" target="_blank" rel="noopener noreferrer">Contracts</Link>
+          </div>
+          <div className="flex flex-col gap-4">
+            <span className="font-['Inter'] text-[0.625rem] text-[#919191] mb-4">HACKATHON</span>
+            <p className="font-['Inter'] text-[0.625rem] uppercase leading-loose text-gray-600">
+              Built for PL Genesis: Frontiers of Collaboration. Submitted under Flow and Zama Confidential Onchain Finance tracks.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div className="px-12 py-8 border-t border-white/5 bg-[#0A0A0A]">
+        <p className="font-['Inter'] text-[0.625rem] uppercase tracking-widest text-gray-700 text-center">
+          Powered by LayerZero, Chainlink, and Envio. No user data is stored without encryption.
+        </p>
       </div>
     </footer>
   );
