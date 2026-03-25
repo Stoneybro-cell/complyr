@@ -13,10 +13,10 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title Smart Wallet
- * @author stoneybro
+ * @author zion Livingstone
  * @notice A smart contract wallet implementation compliant with ERC-4337.
  * @dev Implements IAccount from account-abstraction. Supports Intent Registry for automated payments.
- * @custom:security-contact stoneybrocrypto@gmail.com
+ * @custom:security-contact zionlivingstone4@gmail.com
  */
 contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
     /*//////////////////////////////////////////////////////////////
@@ -32,8 +32,6 @@ contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
         /// @dev The data of the call.
         bytes data;
     }
-
-    /// @notice ComplianceMetadata is defined in ISmartWallet interface
 
     /*//////////////////////////////////////////////////////////////
                            STATE VARIABLES

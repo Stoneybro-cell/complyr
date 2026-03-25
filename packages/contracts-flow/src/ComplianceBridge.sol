@@ -6,29 +6,22 @@ import {MessagingReceipt} from "@layerzerolabs/oapp-evm/contracts/oapp/OAppSende
 import {OptionsBuilder} from "@layerzerolabs/lz-evm-oapp-v2/contracts/oapp/libs/OptionsBuilder.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
+import {IComplianceBridge} from "./IComplianceBridge.sol";
+
 /**
  * @title ComplianceBridge
  * @author stoneybro
  * @notice OApp deployed on Flow EVM. Sends batch payment transaction details 
  *         cross-chain to the Sepolia Zama fhEVM for compliance tracking.
  */
-contract ComplianceBridge is OApp {
+contract ComplianceBridge is OApp, IComplianceBridge {
     using OptionsBuilder for bytes;
 
     // Message type identifiers
     uint8 public constant MSG_REGISTER = 1;
     uint8 public constant MSG_REPORT = 2;
 
-    struct ComplianceReport {
-        bytes32 flowTxHash;
-        address proxyAccount;
-        address[] recipients;
-        uint256[] amounts;
-        bytes32 categoryHandle;
-        bytes categoryProof;
-        bytes32 jurisdictionHandle;
-        bytes jurisdictionProof;
-    }
+
 
     /// @notice The LayerZero Endpoint ID for the destination chain (Sepolia fhEVM)
     uint32 public targetEid;
@@ -44,7 +37,7 @@ contract ComplianceBridge is OApp {
         uint256[] amounts
     );
 
-    /// @notice Event emitted when a company registration is sent
+    /// @notice Event emitted when a business registration is sent
     event RegistrationSent(address indexed proxyAccount, address indexed masterEOA);
 
     /// @notice Thrown when an unauthorized caller tries to send reports
@@ -71,7 +64,7 @@ contract ComplianceBridge is OApp {
      * @param masterEOA The personal wallet (MetaMask) that owns the proxy.
      * @param _options Optional gas execution settings on destination.
      */
-    function registerCompanyOnZama(
+    function registerBusiness(
         address proxyAccount,
         address masterEOA,
         bytes calldata _options
@@ -93,16 +86,34 @@ contract ComplianceBridge is OApp {
 
     /**
      * @notice Checks the required cross-chain gas fee to send the compliance report
+     * @param proxyAccount The business' Smart Wallet Proxy deployed on Flow EVM.
+     * @param masterEOA The personal wallet (MetaMask) that owns the proxy.
+     * @param _options Optional gas execution settings on destination
+     * @return nativeFee The calculated native cross-chain fee
+     */
+    function quoteComplianceCheck(
+        address proxyAccount,
+        address masterEOA,
+        bytes calldata _options
+    ) external view override returns (uint256 nativeFee) {
+        bytes memory payload = abi.encode(MSG_REGISTER, proxyAccount, masterEOA);
+        MessagingFee memory fee = _quote(targetEid, payload, _options, false);
+        return fee.nativeFee;
+    }
+
+    /**
+     * @notice Checks the required cross-chain gas fee to send the compliance report
      * @param report The ComplianceReport struct containing batch transfer details
      * @param _options Optional gas execution settings on destination
-     * @return fee The calculated MessagingFee
+     * @return nativeFee The calculated native cross-chain fee
      */
     function quoteComplianceCheck(
         ComplianceReport calldata report,
         bytes calldata _options
-    ) external view returns (MessagingFee memory fee) {
+    ) external view override returns (uint256 nativeFee) {
         bytes memory payload = abi.encode(MSG_REPORT, report);
-        return _quote(targetEid, payload, _options, false);
+        MessagingFee memory fee = _quote(targetEid, payload, _options, false);
+        return fee.nativeFee;
     }
 
     /**

@@ -3,16 +3,15 @@ pragma solidity ^0.8.19;
 
 import {SmartWallet} from "./SmartWallet.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+import {IComplianceBridge} from "./IComplianceBridge.sol";
 
-interface IComplianceBridge {
-    function registerCompanyOnZama(address proxyAccount, address masterEOA, bytes calldata _options) external payable;
-}
+
 
 /**
  * @title Smart Wallet Factory
- * @author stoneybro
+ * @author zion livingstone
  * @notice Factory for deploying ERC-1167 minimal proxy clones of Smart Wallet.
- * @custom:security-contact stoneybrocrypto@gmail.com
+ * @custom:security-contact zionLivingstone4@gmail.com
  */
 contract SmartWalletFactory {
     /*//////////////////////////////////////////////////////////////
@@ -22,13 +21,13 @@ contract SmartWalletFactory {
     /// @notice Address of the ERC-1167 implementation used as implementation for new accounts.
     address public immutable IMPLEMENTATION;
 
-    /// @notice Address of the LayerZero ComplianceBridge for auto-registration
+    /// @notice Address of the ComplianceBridge for auto-registration
     address public complianceBridge;
 
     /// @notice Mapping from user EOA to deployed SmartAccount clone.
     mapping(address user => address clone) public userClones;
 
-    /// @notice Amount sent to proxies on deployment for testing
+    /// @notice Amount sent to proxies on deployment for testing (This is just for the demo and would no be available on mainet)
     uint256 public constant TEST_AMOUNT = 100 ether;
     /*//////////////////////////////////////////////////////////////
                                 EVENTS
@@ -51,6 +50,11 @@ contract SmartWalletFactory {
     error SmartWalletFactory__ImplementationUndeployed();
 
     /**
+     * @notice Thrown when trying to construct with a compliance bridge that is not deployed.
+     */
+    error SmartWalletFactory__ComplianceBridgeUndeployed();
+
+    /**
      * @notice Thrown when trying to send test amount to new account fails.
      */
     error SmartWalletFactory__DripFailed();
@@ -68,6 +72,9 @@ contract SmartWalletFactory {
         if (_implementation.code.length == 0) {
             revert SmartWalletFactory__ImplementationUndeployed();
         }
+        if (_complianceBridge.code.length == 0) {
+            revert SmartWalletFactory__ComplianceBridgeUndeployed();
+        }
         IMPLEMENTATION = _implementation;
         complianceBridge = _complianceBridge;
     }
@@ -78,16 +85,15 @@ contract SmartWalletFactory {
 
     /**
      * @notice Deploys and initializes a deterministic SmartWallet for a specific owner, or returns
-     *         the existing account if already deployed.
-     *
+     *  the existing account if already deployed.
      * @dev Deployed as an ERC-1167 minimal proxy whose implementation is `this.implementation`.
-     *      Uses `owner` to generate a unique salt, ensuring one wallet per address.
-     *      This function is compatible with ERC-4337 initCode deployment.
-     *
+     * @dev Uses `owner` to generate a unique salt, ensuring one wallet per address.
+     * @dev This function is compatible with ERC-4337 initCode deployment.
+     * @dev A provision of 100 flow is made available on deployment for testing purposes.
+     * @dev The factory will auto-register the business on Zama Sepolia 
      * @param owner The address that will own the smart account.
-     *
      * @return account The address of the ERC-1167 proxy created for `owner`, or the existing
-     *                 account address if already deployed.
+     *  account address if already deployed.
      */
     function createSmartAccount(address owner) public payable returns (address account) {
         bytes32 salt = _getSalt(owner);
@@ -97,8 +103,11 @@ contract SmartWalletFactory {
         if (predictedAddress.code.length != 0) {
             return predictedAddress;
         }
-        // Send test amount to the new account
-        uint256 dripAmount = address(this).balance >= TEST_AMOUNT ? TEST_AMOUNT : 0;
+        // Get cross-chain fee first to ensure we reserve enough for the bridge
+        uint256 lzFee = IComplianceBridge(complianceBridge).quoteComplianceCheck(predictedAddress, owner, "");
+
+        // Send test amount to the new account only if we have enough for both drip AND fee
+        uint256 dripAmount = address(this).balance >= (TEST_AMOUNT + lzFee) ? TEST_AMOUNT : 0;
 
         // Deploy new account
         account = Clones.cloneDeterministic(IMPLEMENTATION, salt, dripAmount);
@@ -109,9 +118,9 @@ contract SmartWalletFactory {
         // Record mapping and emit after successful initialize
         userClones[owner] = account;
 
-        // Auto-Register the company on Zama Sepolia if bridge exists and msg.value is passed
-        if (complianceBridge != address(0) && msg.value > 0) {
-            IComplianceBridge(complianceBridge).registerCompanyOnZama{value: msg.value}(account, owner, "");
+        // Auto-Register the business on Zama Sepolia using the factory's balance
+        if (address(this).balance >= lzFee) {
+            IComplianceBridge(complianceBridge).registerBusiness{value: lzFee}(account, owner, "");
         }
 
         emit AccountCreated(account, owner);

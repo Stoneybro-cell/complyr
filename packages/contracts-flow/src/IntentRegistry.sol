@@ -5,6 +5,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/automation/AutomationCompatible.sol";
 import {ISmartWallet} from "./ISmartWallet.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IComplianceBridge} from "./IComplianceBridge.sol";
 
 /**
  * @title Intent Registry
@@ -14,26 +15,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * @custom:security-contact stoneybrocrypto@gmail.com
  */
 
-interface IComplianceBridge {
-    struct ComplianceReport {
-        bytes32 flowTxHash;
-        address proxyAccount;
-        address[] recipients;
-        uint256[] amounts;
-        bytes32 categoryHandle;
-        bytes categoryProof;
-        bytes32 jurisdictionHandle;
-        bytes jurisdictionProof;
-    }
 
-    struct MessagingFee {
-        uint256 nativeFee;
-        uint256 lzTokenFee;
-    }
-
-    function quoteComplianceCheck(ComplianceReport calldata report, bytes calldata _options) external view returns (MessagingFee memory fee);
-    function sendComplianceReport(ComplianceReport calldata report, bytes calldata _options) external payable;
-}
 contract IntentRegistry is AutomationCompatibleInterface, ReentrancyGuard {
     /*//////////////////////////////////////////////////////////////
                                 TYPES
@@ -500,8 +482,7 @@ contract IntentRegistry is AutomationCompatibleInterface, ReentrancyGuard {
                 jurisdictionProof: intent.jurisdictionProof
             });
 
-            IComplianceBridge.MessagingFee memory msgFee = IComplianceBridge(complianceBridge).quoteComplianceCheck(report, "");
-            bridgeFee = msgFee.nativeFee;
+            bridgeFee = IComplianceBridge(complianceBridge).quoteComplianceCheck(report, "");
         }
 
         ///@notice Execute the batch intent transfer with token, intentId and transaction count
