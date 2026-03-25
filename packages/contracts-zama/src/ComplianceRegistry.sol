@@ -65,7 +65,7 @@ contract ComplianceRegistry is Ownable {
                                 EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event CompanyRegistered(address indexed proxyAccount, address indexed masterEOA);
+    event AccountRegistered(address indexed proxyAccount, address indexed masterEOA);
     event AuditorAdded(address indexed proxyAccount, address indexed auditor);
     event AuditorRemoved(address indexed proxyAccount, address indexed auditor);
 
@@ -132,7 +132,7 @@ contract ComplianceRegistry is Ownable {
      * @param proxyAccount The business' smart account on Flow EVM.
      * @param masterEOA The personal wallet (MetaMask) that owns the proxy.
      */
-    function registerCompany(address proxyAccount, address masterEOA) external onlyLzReceiver {
+    function registerAccount(address proxyAccount, address masterEOA) external onlyLzReceiver {
         if (companyMasters[proxyAccount] != address(0)) {
             revert ComplianceRegistry__AlreadyRegistered();
         }
@@ -141,7 +141,7 @@ contract ComplianceRegistry is Ownable {
         }
 
         companyMasters[proxyAccount] = masterEOA;
-        emit CompanyRegistered(proxyAccount, masterEOA);
+        emit AccountRegistered(proxyAccount, masterEOA);
     }
 
     /**
@@ -157,6 +157,19 @@ contract ComplianceRegistry is Ownable {
 
         isAuditorActive[proxyAccount][newAuditor] = true;
         companyAuditors[proxyAccount].push(newAuditor);
+
+        // Retroactively grant FHE decryption access for all PAST transactions.
+        // Because the contract called FHE.allowThis() upon storing the records, the contract 
+        // itself has the authority to update the FHE ACL handle for the ciphertext.
+        TransactionRecord[] storage ledger = companyLedgers[proxyAccount];
+        for (uint256 i = 0; i < ledger.length; i++) {
+            for (uint256 j = 0; j < ledger[i].categories.length; j++) {
+                // Note: Looping is safe for a hackathon demo but in production, 
+                // this would be structured with pagination/batching to prevent block gas limit issues.
+                ledger[i].categories[j] = FHE.allow(ledger[i].categories[j], newAuditor);
+                ledger[i].jurisdictions[j] = FHE.allow(ledger[i].jurisdictions[j], newAuditor);
+            }
+        }
 
         emit AuditorAdded(proxyAccount, newAuditor);
     }
@@ -270,6 +283,14 @@ contract ComplianceRegistry is Ownable {
      */
     function getCompanyRecordCount(address proxyAccount) external view returns (uint256) {
         return companyLedgers[proxyAccount].length;
+    }
+
+    /**
+     * @notice Returns the list of active auditors for a company.
+     * @param proxyAccount The Flow Smart Account address.
+     */
+    function getAuditors(address proxyAccount) external view returns (address[] memory) {
+        return companyAuditors[proxyAccount];
     }
 
     /**

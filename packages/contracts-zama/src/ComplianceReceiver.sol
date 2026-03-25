@@ -87,7 +87,7 @@ contract ComplianceReceiver is OApp {
                 address masterEOA
             ) = abi.decode(payload, (uint8, address, address));
 
-            registry.registerCompany(proxyAccount, masterEOA);
+            registry.registerAccount(proxyAccount, masterEOA);
             emit ComplianceDecodedAndRecorded(bytes32(0), proxyAccount);
 
         } else if (msgType == MSG_REPORT) {

@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {ISmartWallet} from "./ISmartWallet.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import {IComplianceBridge} from "./IComplianceBridge.sol";
 
 /**
@@ -24,8 +24,6 @@ contract IntentRegistry is ReentrancyGuard {
         bytes32 id;
         /// @notice The wallet that owns this intent
         address wallet;
-        /// @notice The token address (address(0) for ETH, token address for ERC20)
-        address token;
         /// @notice The name of the intent
         string name;
         /// @notice The recipients of the intent
@@ -46,8 +44,6 @@ contract IntentRegistry is ReentrancyGuard {
         uint256 latestTransactionTime;
         /// @notice Whether the intent is active
         bool active;
-        /// @notice Whether to revert entire transaction on any failure (true) or skip failed transfers (false)
-        bool revertOnFailure;
         /// @notice Total amount that failed to transfer (for recovery)
         uint256 failedAmount;
     }
@@ -74,8 +70,8 @@ contract IntentRegistry is ReentrancyGuard {
     /// @notice The active intent ids per wallet
     mapping(address => bytes32[]) public walletActiveIntentIds;
 
-    /// @notice The amount of funds committed to intents per wallet per token
-    mapping(address => mapping(address => uint256)) public walletCommittedFunds;
+    /// @notice The amount of native funds committed to intents per wallet
+    mapping(address => uint256) public walletCommittedFunds;
 
     /// @notice A counter used to generate unique intent ids
     uint256 public intentCounter;
@@ -97,7 +93,6 @@ contract IntentRegistry is ReentrancyGuard {
     event IntentCreated(
         address indexed wallet,
         bytes32 indexed intentId,
-        address indexed token,
         string name,
         uint256 totalCommitment,
         uint256 totalTransactionCount,
@@ -118,7 +113,6 @@ contract IntentRegistry is ReentrancyGuard {
     event IntentCancelled(
         address indexed wallet,
         bytes32 indexed intentId,
-        address indexed token,
         string name,
         uint256 amountRefunded,
         uint256 failedAmountRecovered
@@ -167,9 +161,6 @@ contract IntentRegistry is ReentrancyGuard {
     /// @notice Thrown when the caller is not the wallet owner
     error IntentRegistry__Unauthorized();
 
-    /// @notice Thrown when token address is invalid
-    error IntentRegistry__InvalidToken();
-
     /// @notice Thrown when transaction start time is in the past
     error IntentRegistry__StartTimeInPast();
 
@@ -180,8 +171,8 @@ contract IntentRegistry is ReentrancyGuard {
                               CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
 
-    constructor() {
-        owner = msg.sender;
+    constructor(address _initialOwner) {
+        owner = _initialOwner;
     }
 
     function setComplianceBridge(address _bridge) external {
@@ -201,14 +192,12 @@ contract IntentRegistry is ReentrancyGuard {
      * @dev Compliance data is sent to Zama once at creation time (not at each execution).
      *      Each recipient gets their own encrypted category and jurisdiction.
      *
-     * @param token The token address
      * @param name The name of the intent
      * @param recipients The array of recipient addresses
      * @param amounts The array of amounts corresponding to each recipient
      * @param duration The total duration of the intent in seconds
      * @param interval The interval between transactions in seconds
      * @param transactionStartTime The start time of the transaction (0 for immediate start)
-     * @param revertOnFailure Whether to revert entire transaction on any failure
      * @param categoryHandles Per-recipient FHE-encrypted category handles
      * @param categoryProofs Per-recipient ZKPs for category ciphertexts
      * @param jurisdictionHandles Per-recipient FHE-encrypted jurisdiction handles
@@ -216,14 +205,12 @@ contract IntentRegistry is ReentrancyGuard {
      * @return intentId The unique identifier for the created intent
      */
     function createIntent(
-        address token,
         string memory name,
         address[] memory recipients,
         uint256[] memory amounts,
         uint256 duration,
         uint256 interval,
         uint256 transactionStartTime,
-        bool revertOnFailure,
         bytes32[] calldata categoryHandles,
         bytes[] calldata categoryProofs,
         bytes32[] calldata jurisdictionHandles,
@@ -236,12 +223,6 @@ contract IntentRegistry is ReentrancyGuard {
             registeredWallets.push(wallet);
             isWalletRegistered[wallet] = true;
             emit WalletRegistered(wallet);
-        }
-
-        ///@notice Validate token address (address(0) for ETH is valid)
-        if (token != address(0)) {
-            ///@dev Basic check: token must be a contract
-            if (token.code.length == 0) revert IntentRegistry__InvalidToken();
         }
 
         ///@notice Validate recipients and amounts arrays
@@ -282,13 +263,13 @@ contract IntentRegistry is ReentrancyGuard {
         uint256 totalCommitment = totalAmountPerExecution * totalTransactionCount;
 
         ///@notice Check if the wallet has enough available funds to cover the intent
-        uint256 availableBalance = ISmartWallet(wallet).getAvailableBalance(token);
+        uint256 availableBalance = ISmartWallet(wallet).getAvailableBalance();
         if (availableBalance < totalCommitment) {
             revert IntentRegistry__InsufficientFunds();
         }
 
         ///@notice Generate a unique intent id using abi.encode to prevent collision
-        bytes32 intentId = keccak256(abi.encode(wallet, token, recipients, amounts, block.timestamp, intentCounter++));
+        bytes32 intentId = keccak256(abi.encode(wallet, recipients, amounts, block.timestamp, intentCounter++));
 
         ///@notice Calculate actual start and end times
         uint256 actualStartTime = transactionStartTime == 0 ? block.timestamp : transactionStartTime;
@@ -298,7 +279,6 @@ contract IntentRegistry is ReentrancyGuard {
         walletIntents[wallet][intentId] = Intent({
             id: intentId,
             wallet: wallet,
-            token: token,
             name: name,
             recipients: recipients,
             amounts: amounts,
@@ -309,13 +289,12 @@ contract IntentRegistry is ReentrancyGuard {
             transactionEndTime: actualEndTime,
             latestTransactionTime: 0,
             active: true,
-            revertOnFailure: revertOnFailure,
             failedAmount: 0
         });
 
         ///@notice Update the wallet's committed funds for this token
-        walletCommittedFunds[wallet][token] += totalCommitment;
-        ISmartWallet(wallet).increaseCommitment(token, totalCommitment);
+        walletCommittedFunds[wallet] += totalCommitment;
+        ISmartWallet(wallet).increaseCommitment(totalCommitment);
 
         ///@notice Add the intent id to the wallet's active intent ids
         walletActiveIntentIds[wallet].push(intentId);
@@ -338,7 +317,6 @@ contract IntentRegistry is ReentrancyGuard {
         emit IntentCreated(
             wallet,
             intentId,
-            token,
             name,
             totalCommitment,
             totalTransactionCount,
@@ -425,13 +403,8 @@ contract IntentRegistry is ReentrancyGuard {
             totalAmount += intent.amounts[i];
         }
 
-        ///@notice Check if the wallet has enough funds to cover the execution
-        uint256 balance;
-        if (intent.token == address(0)) {
-            balance = intent.wallet.balance;
-        } else {
-            balance = IERC20(intent.token).balanceOf(intent.wallet);
-        }
+        ///@notice Check if the wallet has enough native funds to cover the execution
+        uint256 balance = intent.wallet.balance;
 
         if (totalAmount > balance) return false;
 
@@ -479,19 +452,17 @@ contract IntentRegistry is ReentrancyGuard {
             totalAmount += intent.amounts[i];
         }
 
-        ///@notice Update the wallet's committed funds for this token
-        walletCommittedFunds[wallet][intent.token] -= totalAmount;
-        ISmartWallet(wallet).decreaseCommitment(intent.token, totalAmount);
+        ///@notice Update the wallet's committed funds
+        walletCommittedFunds[wallet] -= totalAmount;
+        ISmartWallet(wallet).decreaseCommitment(totalAmount);
 
         ///@notice Execute the batch transfer — pure payment, no bridge fee
         uint256 failedAmount = ISmartWallet(wallet)
             .executeBatchIntentTransfer(
-                intent.token,
                 intent.recipients,
                 intent.amounts,
                 intentId,
-                currentTransactionCount,
-                intent.revertOnFailure
+                currentTransactionCount
             );
 
         ///@notice Track failed amounts for recovery
@@ -563,8 +534,8 @@ contract IntentRegistry is ReentrancyGuard {
 
         ///@notice Unlock funds when the intent is cancelled (only if there are remaining transactions)
         if (amountRemaining > 0) {
-            walletCommittedFunds[wallet][intent.token] -= amountRemaining;
-            ISmartWallet(wallet).decreaseCommitment(intent.token, amountRemaining);
+            walletCommittedFunds[wallet] -= amountRemaining;
+            ISmartWallet(wallet).decreaseCommitment(amountRemaining);
         }
 
         intent.active = false;
@@ -572,7 +543,7 @@ contract IntentRegistry is ReentrancyGuard {
         _removeFromActiveIntents(wallet, intentId);
 
         ///@notice Emit event
-        emit IntentCancelled(wallet, intentId, intent.token, intent.name, amountRemaining, failedAmountToRecover);
+        emit IntentCancelled(wallet, intentId, intent.name, amountRemaining, failedAmountToRecover);
     }
 
     /**

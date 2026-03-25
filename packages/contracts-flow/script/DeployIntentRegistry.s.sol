@@ -7,7 +7,7 @@ import {IntentRegistry} from "../src/IntentRegistry.sol";
 contract DeployIntentRegistry is Script {
     function run() external {
         vm.startBroadcast();
-        IntentRegistry registry = new IntentRegistry();
+        IntentRegistry registry = new IntentRegistry(msg.sender);
         vm.stopBroadcast();
         console.log("Intent Registry Deployed at:", address(registry));
     }

@@ -130,7 +130,7 @@ contract ComplianceBridge is OApp, IComplianceBridge {
      * @param masterEOA The personal wallet (MetaMask) that owns the proxy.
      * @param _options Optional gas execution settings on destination.
      */
-    function registerBusiness(
+    function registerAccount(
         address proxyAccount,
         address masterEOA,
         bytes calldata _options

@@ -32,13 +32,13 @@ interface IComplianceBridge {
     }
 
     /**
-     * @notice Sends a one-time business registration across the bridge.
+     * @notice Sends a one-time account registration across the bridge.
      * @dev Bridge self-funds the LayerZero fee from its own balance.
      * @param proxyAccount The business' Smart Wallet Proxy deployed on Flow EVM.
      * @param masterEOA The personal wallet that owns the proxy.
      * @param _options Optional LayerZero execution gas settings.
      */
-    function registerBusiness(
+    function registerAccount(
         address proxyAccount,
         address masterEOA,
         bytes calldata _options

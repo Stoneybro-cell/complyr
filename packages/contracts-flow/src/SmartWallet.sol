@@ -10,7 +10,6 @@ import {_packValidationData} from "@account-abstraction/contracts/core/Helpers.s
 import {ISmartWallet} from "./ISmartWallet.sol";
 import {IComplianceBridge} from "./IComplianceBridge.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title Smart Wallet
@@ -47,9 +46,8 @@ contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
     /// @notice ComplianceBridge for sending compliance reports to Zama.
     address public immutable COMPLIANCE_BRIDGE;
 
-    /// @notice Amount of funds committed to intents per token (locked)
-    /// @dev address(0) represents ETH, other addresses represent ERC20 tokens
-    mapping(address => uint256) public sCommittedFunds;
+    /// @notice Amount of native funds committed to intents (locked)
+    uint256 public sCommittedFunds;
 
     /// @notice EIP-1271 magic return value for valid signatures.
     bytes4 internal constant _EIP1271_MAGICVALUE = 0x1626ba7e;
@@ -59,17 +57,16 @@ contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Emitted when the committed funds are increased.
-    event CommitmentIncreased(address indexed token, uint256 amount, uint256 newTotal);
+    event CommitmentIncreased(uint256 amount, uint256 newTotal);
 
     /// @notice Emitted when the committed funds are decreased.
-    event CommitmentDecreased(address indexed token, uint256 amount, uint256 newTotal);
+    event CommitmentDecreased(uint256 amount, uint256 newTotal);
 
     /// @notice Emitted when a transfer fails during intent execution.
     event TransferFailed(
         bytes32 indexed intentId,
         uint256 indexed transactionCount,
         address indexed recipient,
-        address token,
         uint256 amount
     );
 
@@ -95,7 +92,6 @@ contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
     event IntentBatchTransferExecuted(
         bytes32 indexed intentId,
         uint256 indexed transactionCount,
-        address indexed token,
         uint256 recipientCount,
         uint256 totalValue,
         uint256 failedAmount
@@ -106,7 +102,6 @@ contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
         bytes32 indexed intentId,
         uint256 indexed transactionCount,
         address indexed recipient,
-        address token,
         uint256 amount
     );
 
@@ -131,9 +126,6 @@ contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
 
     /// @notice Thrown when batch inputs are invalid.
     error SmartWallet__InvalidBatchInput();
-
-    /// @notice Thrown when a transfer fails.
-    error SmartWallet__TransferFailed(address recipient, address token, uint256 amount);
 
     /// @notice Thrown when there are insufficient uncommitted funds.
     error SmartWallet__InsufficientUncommittedFunds();
@@ -174,11 +166,6 @@ contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
 
     /**
      * @notice Sends to the EntryPoint (i.e. `msg.sender`) the missing funds for this transaction.
-     *
-     * @dev Subclass MAY override this modifier for better funds management (e.g. send to the
-     *  EntryPoint more than the minimum required, so that in future transactions it will not
-     *   be required to send again).
-     *
      * @param missingAccountFunds The minimum value this modifier should send the EntryPoint which
      *  MAY be zero, in case there is enough deposit, or the userOp has a
      *  paymaster.
@@ -265,26 +252,24 @@ contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
     /**
      * @notice Increases the committed funds for intents.
      * @dev Only callable by the registry.
-     * @param token The token address (address(0) for ETH).
      * @param amount The amount to add to committed funds.
      */
-    function increaseCommitment(address token, uint256 amount) external onlyRegistry {
-        sCommittedFunds[token] += amount;
-        emit CommitmentIncreased(token, amount, sCommittedFunds[token]);
+    function increaseCommitment(uint256 amount) external onlyRegistry {
+        sCommittedFunds += amount;
+        emit CommitmentIncreased(amount, sCommittedFunds);
     }
 
     /**
      * @notice Decreases the committed funds after intent execution/cancellation.
      * @dev Only callable by the registry.
-     * @param token The token address (address(0) for ETH).
      * @param amount The amount to subtract from committed funds.
      */
-    function decreaseCommitment(address token, uint256 amount) external onlyRegistry {
-        if (amount > sCommittedFunds[token]) {
+    function decreaseCommitment(uint256 amount) external onlyRegistry {
+        if (amount > sCommittedFunds) {
             revert SmartWallet__InvalidCommitmentDecrease();
         }
-        sCommittedFunds[token] -= amount;
-        emit CommitmentDecreased(token, amount, sCommittedFunds[token]);
+        sCommittedFunds -= amount;
+        emit CommitmentDecreased(amount, sCommittedFunds);
     }
 
     /**
@@ -304,7 +289,7 @@ contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
         nonReentrant
         onlyEntryPointOrOwner
     {
-        _checkCommitment(address(0), value);
+        _checkCommitment(value);
         bytes4 selector = data.length >= 4 ? bytes4(data[:4]) : bytes4(0);
         _call(target, value, data);
         emit WalletAction(msg.sender, target, value, selector, true, "EXECUTE");
@@ -336,7 +321,7 @@ contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
             totalValue += calls[i].value;
         }
 
-        _checkCommitment(address(0), totalValue);
+        _checkCommitment(totalValue);
 
         for (uint256 i; i < calls.length; i++) {
             bytes4 selector = calls[i].data.length >= 4 ? bytes4(calls[i].data[:4]) : bytes4(0);
@@ -350,22 +335,18 @@ contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
     /**
      * @notice Executes a batch of transfers as part of an intent.
      *
-     * @param token The token address (address(0) for ETH, token address for ERC20).
      * @param recipients The array of recipient addresses.
      * @param amounts The array of amounts corresponding to each recipient.
      * @param intentId The unique identifier for the intent being executed.
      * @param transactionCount The current transaction number within the intent.
-     * @param revertOnFailure Whether to revert entire transaction on any failure (true) or skip failed transfers (false).
      *
-     * @return failedAmount The total amount that failed to transfer (only in skip mode)
+     * @return failedAmount The total amount that failed to transfer (in skip mode)
      */
     function executeBatchIntentTransfer(
-        address token,
         address[] calldata recipients,
         uint256[] calldata amounts,
         bytes32 intentId,
-        uint256 transactionCount,
-        bool revertOnFailure
+        uint256 transactionCount
     ) external nonReentrant onlyRegistry returns (uint256 failedAmount) {
         if (recipients.length == 0 || recipients.length != amounts.length) {
             revert SmartWallet__InvalidBatchInput();
@@ -383,54 +364,29 @@ contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
 
             totalValue += amount;
 
-            bool success;
-            if (token == address(0)) {
-                // ETH transfer
-                (success,) = recipient.call{value: amount}("");
-            } else {
-                // ERC20 token transfer
-                try IERC20(token).transfer(recipient, amount) returns (bool result) {
-                    success = result;
-                } catch {
-                    success = false;
-                }
-            }
+            (bool success,) = recipient.call{value: amount}("");
 
             if (!success) {
                 totalFailed += amount;
-                emit TransferFailed(intentId, transactionCount, recipient, token, amount);
-
-                if (revertOnFailure) {
-                    // Atomic mode: revert entire transaction on any failure
-                    revert SmartWallet__TransferFailed(recipient, token, amount);
-                }
-                // Skip mode: continue to next recipient
+                emit TransferFailed(intentId, transactionCount, recipient, amount);
             } else {
                 // Emit success event for tracking
-                emit IntentTransferSuccess(intentId, transactionCount, recipient, token, amount);
+                emit IntentTransferSuccess(intentId, transactionCount, recipient, amount);
             }
         }
 
-        emit IntentBatchTransferExecuted(intentId, transactionCount, token, recipients.length, totalValue, totalFailed);
+        emit IntentBatchTransferExecuted(intentId, transactionCount, recipients.length, totalValue, totalFailed);
 
         return totalFailed;
     }
 
     /**
-     * @notice Returns the available (uncommitted) balance for a specific token.
-     *
-     * @param token The token address (address(0) for ETH, token address for ERC20).
+     * @notice Returns the available (uncommitted) balance.
      *
      * @return The available balance.
      */
-    function getAvailableBalance(address token) external view returns (uint256) {
-        if (token == address(0)) {
-            // ETH balance
-            return address(this).balance - sCommittedFunds[address(0)];
-        } else {
-            // ERC20 token balance
-            return IERC20(token).balanceOf(address(this)) - sCommittedFunds[token];
-        }
+    function getAvailableBalance() external view returns (uint256) {
+        return address(this).balance - sCommittedFunds;
     }
 
     /**
@@ -463,20 +419,13 @@ contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
     }
 
     /**
-     * @notice Checks if a transfer value would exceed uncommitted funds for a specific token.
+     * @notice Checks if a transfer value would exceed uncommitted funds.
      *
-     * @param token The token address (address(0) for ETH).
      * @param value The value to check.
      */
-    function _checkCommitment(address token, uint256 value) internal view {
+    function _checkCommitment(uint256 value) internal view {
         if (value > 0) {
-            uint256 availableBalance;
-            if (token == address(0)) {
-                availableBalance = address(this).balance - sCommittedFunds[address(0)];
-            } else {
-                availableBalance = IERC20(token).balanceOf(address(this)) - sCommittedFunds[token];
-            }
-
+            uint256 availableBalance = address(this).balance - sCommittedFunds;
             if (value > availableBalance) {
                 revert SmartWallet__InsufficientUncommittedFunds();
             }
