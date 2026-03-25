@@ -14,10 +14,18 @@ packages/*/cache/
 packages/*/out/
 packages/*/lib/
 packages/*/broadcast/
+packages/*/generated/
+packages/*/dist/
+packages/*/build/
+packages/*/logs/
 
 # Environment
 .env
 .env*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # IDE
 .vscode/

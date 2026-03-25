@@ -303,14 +303,6 @@ contract SmartWallet is IAccount, ISmartWallet, ReentrancyGuard, Initializable {
     }
 
     /**
-     * @notice Executes a single call with compliance metadata.
-     * @dev Can only be called by the EntryPoint or the owner of this account.
-     * @param target The address to call.
-     * @param value  The value to send with the call.
-     * @param data   The data of the call.
-     */
-
-    /**
      * @notice Executes a batch of calls from this account.
      *
      * @dev Can only be called by the EntryPoint or the owner of this account.

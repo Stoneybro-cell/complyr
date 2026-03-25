@@ -2,7 +2,6 @@
 pragma solidity ^0.8.19;
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/automation/AutomationCompatible.sol";
 import {ISmartWallet} from "./ISmartWallet.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IComplianceBridge} from "./IComplianceBridge.sol";
@@ -11,12 +10,12 @@ import {IComplianceBridge} from "./IComplianceBridge.sol";
  * @title Intent Registry
  * @author stoneybro
  * @notice Central registry for managing automated payment intents across all wallets.
- * @dev Integrates with Chainlink Automation for decentralized intent execution. Supports ETH and ERC20 tokens.
+ * @dev Integrates with a custom Keeper for decentralized intent execution. Supports ETH and ERC20 tokens.
  * @custom:security-contact stoneybrocrypto@gmail.com
  */
 
 
-contract IntentRegistry is AutomationCompatibleInterface, ReentrancyGuard {
+contract IntentRegistry is ReentrancyGuard {
     /*//////////////////////////////////////////////////////////////
                                 TYPES
     //////////////////////////////////////////////////////////////*/
@@ -337,7 +336,7 @@ contract IntentRegistry is AutomationCompatibleInterface, ReentrancyGuard {
     }
 
     /**
-     * @notice Chainlink Automation calls this to check if any intents need execution
+     * @notice Custom Keeper calls this to check if any intents need execution
      * @dev Note: For production, this should use a priority queue or keeper network pattern
      *      to handle 1000+ wallets. Current implementation suitable for MVP/demo with <100 wallets.5
      * @return upkeepNeeded True if an intent needs execution
@@ -348,7 +347,6 @@ contract IntentRegistry is AutomationCompatibleInterface, ReentrancyGuard {
     )
         external
         view
-        override
         returns (bool upkeepNeeded, bytes memory performData)
     {
         ///@notice Check if there are any registered wallets
@@ -373,11 +371,11 @@ contract IntentRegistry is AutomationCompatibleInterface, ReentrancyGuard {
     }
 
     /**
-     * @notice Chainlink Automation calls this to execute an intent
+     * @notice Custom Keeper calls this to execute an intent
      *
      * @param performData Encoded wallet address and intent id
      */
-    function performUpkeep(bytes calldata performData) external override {
+    function performUpkeep(bytes calldata performData) external {
         (address wallet, bytes32 intentId) = abi.decode(performData, (address, bytes32));
         executeIntent(wallet, intentId);
     }
