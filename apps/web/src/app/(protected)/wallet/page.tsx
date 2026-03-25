@@ -43,8 +43,9 @@ export default function Page() {
       <SidebarInset>
         <header className="bg-background sticky top-0 flex shrink-0 items-center gap-2 border-b p-4 z-20">
           <SidebarTrigger className="-ml-1" />
-          <div className="flex justify-center w-full mr-4">
-            <Image src="/complyrlogo.svg" alt="Complyr" width={120} height={32} className="h-8 w-auto" />
+          <div className="flex justify-center items-center w-full gap-1 mr-4">
+            <Image src="/complyrlogo.svg" alt="Complyr" width={120} height={32} className="h-6 w-auto" />
+            <div className="text-2xl font-bold">Complyr</div>
           </div>
         </header>
         <div className="flex  flex-1 flex-col gap-4 p-4">

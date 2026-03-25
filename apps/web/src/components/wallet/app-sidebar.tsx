@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { File, Inbox, Command, LogOut, Users } from "lucide-react";
 import { useLogout } from "@privy-io/react-auth";
+import Image from "next/image";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import CopyText from "@/components/ui/copy";
@@ -31,6 +32,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { TransactionList } from "@/components/transaction-history/TransactionList";
 import { ContactList } from "@/components/contacts/ContactList";
+import Link from "next/link";
 
 
 type AppSidebarProps = {
@@ -87,9 +89,9 @@ export function AppSidebar({
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton size="lg" asChild className="md:h-8 md:p-0">
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <Command className="size-4" />
-                </div>
+                <Link href="/" className=" text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                  <Image src="/complyrlogo.svg" alt="Complyr" width={120} height={32} className="h-6 w-auto" />
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

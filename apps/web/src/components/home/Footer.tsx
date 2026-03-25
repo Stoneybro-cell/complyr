@@ -57,16 +57,7 @@ export default function Footer() {
                   Zama fhEVM
                 </a>
               </li>
-              <li>
-                <a
-                  href="https://docs.pimlico.io"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  Pimlico (ERC-4337)
-                </a>
-              </li>
+
             </ul>
           </div>
 
