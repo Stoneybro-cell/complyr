@@ -10,6 +10,11 @@ contract HelperConfig is Script {
         address implementation;
         address registry;
         address complianceBridge;
+        address owner;
+        address verifyingSigner;
+        address entryPoint;
+        address lzEndpoint;
+        uint32 targetEid;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -48,9 +53,14 @@ contract HelperConfig is Script {
 
     function getFlowEthConfig() public pure returns (NetworkConfig memory) {
         return NetworkConfig({
-            implementation: 0xd63E841AAb10D118a3cb541FbeF011eBae6437C6,
-            registry: 0x37c5c677146A19e61295E40F0518bAf3f94305fE,
-            complianceBridge: address(0) // Default to 0, update when deployed
+            implementation: 0x8EcC0e5B6e37b91EFdD7323603731A59073173a7, // SmartWalletImplementation
+            registry: 0xd9eB514fE43eEc5455883d213Db12Fd6AF145aFe,       // IntentRegistry
+            complianceBridge: 0x33156Bf5Dc961d5AFf26b1e4fc65623ef36BC352, 
+            owner: 0x0D96081998fd583334fd1757645B40fdD989B267,
+            verifyingSigner: 0xb1640Df792f8549e545023c3f298E7af90532642,
+            entryPoint: 0x0000000071727De22E5E9d8BAf0edAc6f37da032,
+            lzEndpoint: 0x6C7Ab2202C98C4227C5c46f1417D81144DA716Ff, // LayerZero V2 Testnet Endpoint
+            targetEid: 40161 // Sepolia Target
         });
     }
 
@@ -59,7 +69,16 @@ contract HelperConfig is Script {
             return localNetwork;
         }
 
-        localNetwork = NetworkConfig({implementation: address(0), registry: address(0), complianceBridge: address(0)});
+        localNetwork = NetworkConfig({
+            implementation: address(0), 
+            registry: address(0), 
+            complianceBridge: address(0),
+            owner: msg.sender,
+            verifyingSigner: msg.sender,
+            entryPoint: 0x0000000071727De22E5E9d8BAf0edAc6f37da032,
+            lzEndpoint: address(0),
+            targetEid: 0
+        });
 
         return localNetwork;
     }

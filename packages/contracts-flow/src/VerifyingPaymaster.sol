@@ -72,6 +72,16 @@ contract VerifyingPaymaster is BasePaymaster {
         emit SignerUpdated(address(0), _verifyingSigner);
     }
 
+    /**
+     * @dev Overrides the BasePaymaster ERC165 sanity check.
+     *      Flow EVM's EntryPoint V0.7 deployment does not respond to supportsInterface(),
+     *      causing a revert on deployment. The EntryPoint IS the correct v0.7 contract —
+     *      it simply does not implement ERC165 advertising. We skip this check safely.
+     */
+    function _validateEntryPointInterface(IEntryPoint /*__entryPoint*/) internal override {
+        // Intentionally skipped: Flow EVM's EntryPoint does not support ERC165
+    }
+
     /*//////////////////////////////////////////////////////////////
                               FUNCTIONS
     //////////////////////////////////////////////////////////////*/

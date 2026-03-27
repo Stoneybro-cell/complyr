@@ -10,8 +10,8 @@ contract DeployComplianceReceiver is Script {
 
     function run() external {
         // You'll need to provide your ComplianceRegistry address here
-        address registry = vm.envAddress("COMPLIANCE_REGISTRY");
-        address owner = msg.sender;
+        address registry = 0x722aD9117477Ad4Cb345F1419bd60FAFEACAfB00;
+        address owner = 0x0D96081998fd583334fd1757645B40fdD989B267;
 
         vm.startBroadcast();
         ComplianceReceiver receiver = new ComplianceReceiver(

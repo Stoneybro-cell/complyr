@@ -64,18 +64,14 @@ contract ComplianceReceiver is OApp {
      * @dev Called automatically by the LayerZero Executor when a message arrives from Flow.
      *      Decodes the payload and pushes it into the Zama fhEVM registry.
      * 
-     * @param _origin Details about the sender (source eid, sender address)
-     * @param _guid The unique message identifier
      * @param payload The encoded parameters sent from `ComplianceBridge.sol`
-     * @param _executor The address of the LayerZero Executor
-     * @param _extraData Arbitrary data passed by the relayer
      */
     function _lzReceive(
-        Origin calldata _origin, // origin.sender = the ComplianceBridge.sol
-        bytes32 _guid,
+        Origin calldata /*_origin*/, // origin.sender = the ComplianceBridge.sol
+        bytes32 /*_guid*/,
         bytes calldata payload,
-        address _executor,
-        bytes calldata _extraData
+        address /*_executor*/,
+        bytes calldata /*_extraData*/
     ) internal override {
         // First 32 bytes are always the message type padded by abi.encode
         uint8 msgType = abi.decode(payload[:32], (uint8));
