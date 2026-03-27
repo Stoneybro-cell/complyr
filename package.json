@@ -17,5 +17,8 @@
     "@layerzerolabs/lz-evm-protocol-v2": "^3.0.167",
     "@layerzerolabs/oapp-evm": "^0.4.1",
     "solidity-bytes-utils": "^0.8.4"
+  },
+  "devDependencies": {
+    "next": "16.1.1"
   }
 }

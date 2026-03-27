@@ -23,6 +23,10 @@ importers:
       solidity-bytes-utils:
         specifier: ^0.8.4
         version: 0.8.4
+    devDependencies:
+      next:
+        specifier: 16.1.1
+        version: 16.1.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
 
   apps/web:
     dependencies:
