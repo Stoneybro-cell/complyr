@@ -6,6 +6,11 @@ export const SmartWalletABI = [
         "name": "registry",
         "type": "address",
         "internalType": "address"
+      },
+      {
+        "name": "bridge",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "stateMutability": "nonpayable"
@@ -17,6 +22,19 @@ export const SmartWalletABI = [
   {
     "type": "receive",
     "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "COMPLIANCE_BRIDGE",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -35,11 +53,6 @@ export const SmartWalletABI = [
     "type": "function",
     "name": "decreaseCommitment",
     "inputs": [
-      {
-        "name": "token",
-        "type": "address",
-        "internalType": "address"
-      },
       {
         "name": "amount",
         "type": "uint256",
@@ -120,11 +133,6 @@ export const SmartWalletABI = [
     "name": "executeBatchIntentTransfer",
     "inputs": [
       {
-        "name": "token",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
         "name": "recipients",
         "type": "address[]",
         "internalType": "address[]"
@@ -143,11 +151,6 @@ export const SmartWalletABI = [
         "name": "transactionCount",
         "type": "uint256",
         "internalType": "uint256"
-      },
-      {
-        "name": "revertOnFailure",
-        "type": "bool",
-        "internalType": "bool"
       }
     ],
     "outputs": [
@@ -162,13 +165,7 @@ export const SmartWalletABI = [
   {
     "type": "function",
     "name": "getAvailableBalance",
-    "inputs": [
-      {
-        "name": "token",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
+    "inputs": [],
     "outputs": [
       {
         "name": "",
@@ -182,11 +179,6 @@ export const SmartWalletABI = [
     "type": "function",
     "name": "increaseCommitment",
     "inputs": [
-      {
-        "name": "token",
-        "type": "address",
-        "internalType": "address"
-      },
       {
         "name": "amount",
         "type": "uint256",
@@ -235,14 +227,63 @@ export const SmartWalletABI = [
   },
   {
     "type": "function",
-    "name": "sCommittedFunds",
+    "name": "reportCompliance",
     "inputs": [
       {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
+        "name": "report",
+        "type": "tuple",
+        "internalType": "struct IComplianceBridge.ComplianceReport",
+        "components": [
+          {
+            "name": "flowTxHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "proxyAccount",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "recipients",
+            "type": "address[]",
+            "internalType": "address[]"
+          },
+          {
+            "name": "amounts",
+            "type": "uint256[]",
+            "internalType": "uint256[]"
+          },
+          {
+            "name": "categoryHandles",
+            "type": "bytes32[]",
+            "internalType": "bytes32[]"
+          },
+          {
+            "name": "categoryProofs",
+            "type": "bytes[]",
+            "internalType": "bytes[]"
+          },
+          {
+            "name": "jurisdictionHandles",
+            "type": "bytes32[]",
+            "internalType": "bytes32[]"
+          },
+          {
+            "name": "jurisdictionProofs",
+            "type": "bytes[]",
+            "internalType": "bytes[]"
+          }
+        ]
       }
     ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "sCommittedFunds",
+    "inputs": [],
     "outputs": [
       {
         "name": "",
@@ -346,12 +387,6 @@ export const SmartWalletABI = [
     "name": "CommitmentDecreased",
     "inputs": [
       {
-        "name": "token",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
         "name": "amount",
         "type": "uint256",
         "indexed": false,
@@ -370,12 +405,6 @@ export const SmartWalletABI = [
     "type": "event",
     "name": "CommitmentIncreased",
     "inputs": [
-      {
-        "name": "token",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
       {
         "name": "amount",
         "type": "uint256",
@@ -465,12 +494,6 @@ export const SmartWalletABI = [
         "internalType": "uint256"
       },
       {
-        "name": "token",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
         "name": "recipientCount",
         "type": "uint256",
         "indexed": false,
@@ -514,12 +537,6 @@ export const SmartWalletABI = [
         "internalType": "address"
       },
       {
-        "name": "token",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      },
-      {
         "name": "amount",
         "type": "uint256",
         "indexed": false,
@@ -548,12 +565,6 @@ export const SmartWalletABI = [
         "name": "recipient",
         "type": "address",
         "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "token",
-        "type": "address",
-        "indexed": false,
         "internalType": "address"
       },
       {
@@ -652,6 +663,11 @@ export const SmartWalletABI = [
   },
   {
     "type": "error",
+    "name": "SmartWallet__ComplianceBridgeZeroAddress",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "SmartWallet__InsufficientUncommittedFunds",
     "inputs": []
   },
@@ -684,27 +700,6 @@ export const SmartWalletABI = [
     "type": "error",
     "name": "SmartWallet__OwnerIsZeroAddress",
     "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "SmartWallet__TransferFailed",
-    "inputs": [
-      {
-        "name": "recipient",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "token",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "amount",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ]
   },
   {
     "type": "error",

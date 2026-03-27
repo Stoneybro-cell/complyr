@@ -1,28 +1,56 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export default function FinalCTA() {
   return (
-    <section className="relative py-40 px-8 md:px-24 bg-[#ffffff] text-[#1a1c1c] overflow-hidden">
-      {/* Decorative image overlay */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none grayscale">
-        <img alt="modern glass skyscraper" className="w-full h-full object-cover" data-alt="dramatic upward angle of a black and white skyscraper glass facade with sharp reflections and deep contrast" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-x8XI29ALNjfEcFqQOkIa1q2LLuMjqQDWs_1XQcj-gIIobv318AqiSsIOKggbtzbR7gK9RbV_tSBSGrFGNNx5d0Ly4RiPhOcHvh0ihqtKob5qzDMbJzrRLbTIvUKrbbzkcIMraTMyCD1UCOCCpY92kK0Z-LcGB7hsluZ3oDKKhzRIsVj5HsX10SgGnNEHKsD2iGupL_nG207zmPd5T4m0i-1LbxCWKo2QN1aG6dc6rJ76tUIJADOinxVSuB0yAbB4PnYOOzK7Yzk"/>
-      </div>
-      <div className="relative z-10 max-w-4xl">
-        <h2 className="font-['Public_Sans'] text-4xl md:text-6xl font-black mb-8 leading-[1.1] tracking-tighter uppercase">
+    <section className="py-40 px-6 md:px-12 bg-primary text-on-primary relative overflow-hidden">
+      <div className="absolute inset-0 grain-overlay"></div>
+      <div className="max-w-4xl mx-auto text-center relative z-10">
+        <motion.h2 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="text-4xl md:text-6xl font-bold tracking-tighter uppercase mb-10 leading-none"
+        >
           Your business is already operating onchain. Your compliance layer should be too.
-        </h2>
-        <p className="font-['Inter'] text-xl md:text-2xl mb-12 opacity-80 leading-relaxed">
-          Complyr is live on Flow EVM testnet. Start building the future of institutional-grade onchain finance today.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-6">
-          <Link href="/login" className="flex items-center justify-center bg-[#0E0E0E] text-white px-12 py-6 font-['Inter'] text-[0.875rem] font-black uppercase tracking-[0.2em] hover:bg-black transition-colors">
-            TRY THE DEMO
+        </motion.h2>
+        
+        <motion.p 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+          className="text-lg md:text-xl font-light mb-16 opacity-70"
+        >
+          Complyr is live on Flow EVM and Zama fhEVM testnets. Start building the future of institutional-grade onchain finance today.
+        </motion.p>
+        
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
+          className="flex flex-col sm:flex-row gap-6 justify-center"
+        >
+          <Link
+            href="/login"
+            className="bg-on-primary text-primary px-12 py-6 text-sm font-bold uppercase tracking-[0.2em] hover:bg-surface-dim hover:scale-105 active:scale-95 transition-all text-center"
+          >
+            Try the demo
           </Link>
-          <Link href="https://github.com/Stoneybro/complyr#readme" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center border border-[#1a1c1c] text-[#1a1c1c] px-12 py-6 font-['Inter'] text-[0.875rem] font-black uppercase tracking-[0.2em] hover:bg-[#1a1c1c] hover:text-[#ffffff] transition-all">
-            READ THE DOCS
+          <Link
+            href="https://github.com/Stoneybro/complyr#readme"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="border border-on-primary text-on-primary px-12 py-6 text-sm font-bold uppercase tracking-[0.2em] hover:bg-on-primary hover:text-primary hover:scale-105 active:scale-95 transition-all text-center"
+          >
+            Read the docs
           </Link>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

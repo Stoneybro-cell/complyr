@@ -8,6 +8,9 @@ import { RegistryAddress } from "@/lib/CA";
 import { RecurringPaymentParams } from "./types";
 import { checkSufficientBalance } from "./utils";
 
+import { getFhevmInstance } from "@/lib/fhevm";
+import { bytesToHex } from "viem";
+
 export function useRecurringPayment(availableEthBalance?: string) {
     const { getClient } = useSmartAccountContext();
     const { wallets } = useWallets();
@@ -23,19 +26,6 @@ export function useRecurringPayment(availableEthBalance?: string) {
                 const totalPayments = Math.floor(params.duration / params.interval);
                 const totalCommitment = (amountPerPayment * totalPayments).toString();
 
-                // Balance check
-                if (availableEthBalance) {
-                    const balanceCheck = checkSufficientBalance({
-                        availableBalance: availableEthBalance,
-                        requiredAmount: totalCommitment,
-                        token: "FLOW"
-                    });
-
-                    if (!balanceCheck.sufficient) {
-                        throw new Error(balanceCheck.message);
-                    }
-                }
-
                 const smartAccountClient = await getClient();
                 if (!smartAccountClient) {
                     throw new Error("Smart Account Client is not initialized");
@@ -46,18 +36,46 @@ export function useRecurringPayment(availableEthBalance?: string) {
 
                 const amountsInWei = params.amounts.map((amount) => parseEther(amount));
 
+                // Initialize FHEVM and Encrypt Compliance Data
+                const instance = await getFhevmInstance();
+                const compliance = params.compliance || {};
+                const len = params.recipients.length;
+
+                const categoryHandles: `0x${string}`[] = [];
+                const categoryProofs: `0x${string}`[] = [];
+                const jurisdictionHandles: `0x${string}`[] = [];
+                const jurisdictionProofs: `0x${string}`[] = [];
+
+                for (let i = 0; i < len; i++) {
+                    const catVal = compliance.categories?.[i] ?? 0;
+                    const encCat = await instance.createEncryptedInput(RegistryAddress, owner.address)
+                        .add8(catVal)
+                        .encrypt();
+                    categoryHandles.push(bytesToHex(encCat.handles[0]));
+                    categoryProofs.push(bytesToHex(encCat.inputProof));
+
+                    const jurVal = compliance.jurisdictions?.[i] ?? 0;
+                    const encJur = await instance.createEncryptedInput(RegistryAddress, owner.address)
+                        .add8(jurVal)
+                        .encrypt();
+                    jurisdictionHandles.push(bytesToHex(encJur.handles[0]));
+                    jurisdictionProofs.push(bytesToHex(encJur.inputProof));
+                }
+
                 const callData = encodeFunctionData({
                     abi: IntentRegistryABI,
                     functionName: "createIntent",
                     args: [
-                        zeroAddress, // FLOW (native token)
                         params.name,
                         params.recipients,
                         amountsInWei,
                         BigInt(params.duration),
                         BigInt(params.interval),
                         BigInt(params.transactionStartTime),
-                        params.revertOnFailure ?? true,
+                        categoryHandles,
+                        categoryProofs,
+                        jurisdictionHandles,
+                        jurisdictionProofs
                     ],
                 });
 

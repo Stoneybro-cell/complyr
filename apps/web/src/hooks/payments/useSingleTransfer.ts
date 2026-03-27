@@ -7,6 +7,9 @@ import { SingleTransferParams } from "./types";
 import { checkSufficientBalance } from "./utils";
 import { SmartWalletABI } from "@/lib/abi/SmartWalletAbi";
 
+import { getFhevmInstance } from "@/lib/fhevm";
+import { bytesToHex } from "viem";
+
 export function useSingleTransfer(availableEthBalance?: string) {
     const { getClient } = useSmartAccountContext();
     const { wallets } = useWallets();
@@ -40,15 +43,52 @@ export function useSingleTransfer(availableEthBalance?: string) {
 
                 const amountInWei = parseEther(params.amount);
 
+                // Setup default single call
+                const calls = [
+                    {
+                        to: params.to,
+                        data: "0x" as `0x${string}`,
+                        value: amountInWei,
+                    },
+                ];
+
+                // If compliance metadata exists, bundle the reportCompliance call
+                if (params.compliance && (params.compliance.categories?.length || params.compliance.jurisdictions?.length)) {
+                    const instance = await getFhevmInstance();
+                    const encCat = await instance.createEncryptedInput(smartAccountClient.account!.address, owner.address)
+                        .add8(params.compliance.categories?.[0] ?? 0)
+                        .encrypt();
+                    const encJur = await instance.createEncryptedInput(smartAccountClient.account!.address, owner.address)
+                        .add8(params.compliance.jurisdictions?.[0] ?? 0)
+                        .encrypt();
+
+                    const reportCallData = encodeFunctionData({
+                        abi: SmartWalletABI,
+                        functionName: "reportCompliance",
+                        args: [
+                            {
+                                flowTxHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+                                proxyAccount: smartAccountClient.account!.address as `0x${string}`,
+                                recipients: [params.to],
+                                amounts: [amountInWei],
+                                categoryHandles: [bytesToHex(encCat.handles[0])],
+                                categoryProofs: [bytesToHex(encCat.inputProof)],
+                                jurisdictionHandles: [bytesToHex(encJur.handles[0])],
+                                jurisdictionProofs: [bytesToHex(encJur.inputProof)]
+                            }
+                        ]
+                    });
+
+                    calls.push({
+                        to: smartAccountClient.account!.address as `0x${string}`,
+                        data: reportCallData,
+                        value: 0n,
+                    });
+                }
+
                 let hash = await smartAccountClient.sendUserOperation({
                     account: smartAccountClient.account,
-                    calls: [
-                        {
-                            to: params.to,
-                            data: "0x",
-                            value: amountInWei,
-                        },
-                    ],
+                    calls,
                 });
 
                 const receipt = await smartAccountClient.waitForUserOperationReceipt({

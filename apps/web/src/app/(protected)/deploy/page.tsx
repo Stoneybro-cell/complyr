@@ -5,10 +5,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { useDeployWallet } from "@/hooks/useDeployWallet";
 import useWalletDeployment from "@/hooks/useWalletDeployment";
+import { LZStatusTracker } from "@/components/ui/lz-status-tracker";
 
 function Page() {
   const [checked, setChecked] = useState(false);
-  const { mutate: deployWallet, isPending } = useDeployWallet();
+  const { mutate: deployWallet, isPending, bridgeStatus } = useDeployWallet();
   const { isLoading } = useWalletDeployment();
   if (isLoading) {
     return <div>Loading...</div>;
@@ -55,6 +56,11 @@ function Page() {
             {isPending ? "Activating..." : "Activate Account"}
           </Button>
 
+          {bridgeStatus !== "idle" && (
+            <div className="w-full mt-4 text-left">
+              <LZStatusTracker status={bridgeStatus} title="Wallet Activation & Sync" />
+            </div>
+          )}
         </div>
 
       </div>

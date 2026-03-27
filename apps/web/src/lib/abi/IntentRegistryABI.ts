@@ -1,5 +1,20 @@
 export const IntentRegistryABI = [
   {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "_initialOwner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "receive",
+    "stateMutability": "payable"
+  },
+  {
     "type": "function",
     "name": "MAX_DURATION",
     "inputs": [],
@@ -77,13 +92,21 @@ export const IntentRegistryABI = [
   },
   {
     "type": "function",
-    "name": "createIntent",
-    "inputs": [
+    "name": "complianceBridge",
+    "inputs": [],
+    "outputs": [
       {
-        "name": "token",
+        "name": "",
         "type": "address",
         "internalType": "address"
-      },
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "createIntent",
+    "inputs": [
       {
         "name": "name",
         "type": "string",
@@ -115,9 +138,24 @@ export const IntentRegistryABI = [
         "internalType": "uint256"
       },
       {
-        "name": "revertOnFailure",
-        "type": "bool",
-        "internalType": "bool"
+        "name": "categoryHandles",
+        "type": "bytes32[]",
+        "internalType": "bytes32[]"
+      },
+      {
+        "name": "categoryProofs",
+        "type": "bytes[]",
+        "internalType": "bytes[]"
+      },
+      {
+        "name": "jurisdictionHandles",
+        "type": "bytes32[]",
+        "internalType": "bytes32[]"
+      },
+      {
+        "name": "jurisdictionProofs",
+        "type": "bytes[]",
+        "internalType": "bytes[]"
       }
     ],
     "outputs": [
@@ -180,11 +218,6 @@ export const IntentRegistryABI = [
             "internalType": "address"
           },
           {
-            "name": "token",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
             "name": "name",
             "type": "string",
             "internalType": "string"
@@ -231,11 +264,6 @@ export const IntentRegistryABI = [
           },
           {
             "name": "active",
-            "type": "bool",
-            "internalType": "bool"
-          },
-          {
-            "name": "revertOnFailure",
             "type": "bool",
             "internalType": "bool"
           },
@@ -296,6 +324,19 @@ export const IntentRegistryABI = [
   },
   {
     "type": "function",
+    "name": "owner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "performUpkeep",
     "inputs": [
       {
@@ -328,6 +369,19 @@ export const IntentRegistryABI = [
   },
   {
     "type": "function",
+    "name": "setComplianceBridge",
+    "inputs": [
+      {
+        "name": "_bridge",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "walletActiveIntentIds",
     "inputs": [
       {
@@ -354,11 +408,6 @@ export const IntentRegistryABI = [
     "type": "function",
     "name": "walletCommittedFunds",
     "inputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      },
       {
         "name": "",
         "type": "address",
@@ -397,11 +446,6 @@ export const IntentRegistryABI = [
       },
       {
         "name": "wallet",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "token",
         "type": "address",
         "internalType": "address"
       },
@@ -446,11 +490,6 @@ export const IntentRegistryABI = [
         "internalType": "bool"
       },
       {
-        "name": "revertOnFailure",
-        "type": "bool",
-        "internalType": "bool"
-      },
-      {
         "name": "failedAmount",
         "type": "uint256",
         "internalType": "uint256"
@@ -473,12 +512,6 @@ export const IntentRegistryABI = [
         "type": "bytes32",
         "indexed": true,
         "internalType": "bytes32"
-      },
-      {
-        "name": "token",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
       },
       {
         "name": "name",
@@ -516,12 +549,6 @@ export const IntentRegistryABI = [
         "type": "bytes32",
         "indexed": true,
         "internalType": "bytes32"
-      },
-      {
-        "name": "token",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
       },
       {
         "name": "name",
@@ -673,11 +700,6 @@ export const IntentRegistryABI = [
   {
     "type": "error",
     "name": "IntentRegistry__InvalidRecipient",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "IntentRegistry__InvalidToken",
     "inputs": []
   },
   {

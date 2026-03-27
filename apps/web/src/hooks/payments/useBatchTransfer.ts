@@ -7,6 +7,9 @@ import { BatchTransferParams } from "./types";
 import { checkSufficientBalance } from "./utils";
 import { SmartWalletABI } from "@/lib/abi/SmartWalletAbi";
 
+import { getFhevmInstance } from "@/lib/fhevm";
+import { bytesToHex } from "viem";
+
 export function useBatchTransfer(availableEthBalance?: string) {
     const { getClient } = useSmartAccountContext();
     const { wallets } = useWallets();
@@ -43,22 +46,64 @@ export function useBatchTransfer(availableEthBalance?: string) {
 
                 const amountsInWei = params.amounts.map((amount) => parseEther(amount));
 
-                // Prepare calls
+                // Prepare standard transfer calls
                 const calls = params.recipients.map((recipient, index) => ({
-                    target: recipient, // specific struct field name for SmartWallet
-                    to: recipient,     // for standard permissionless calls
+                    to: recipient,
                     data: "0x" as `0x${string}`,
                     value: amountsInWei[index],
                 }));
 
-                // Standard execution
+                // FHE encryption and bundle reportCompliance
+                if (params.compliance && (params.compliance.categories?.length || params.compliance.jurisdictions?.length)) {
+                    const instance = await getFhevmInstance();
+                    
+                    const categoryHandles: `0x${string}`[] = [];
+                    const categoryProofs: `0x${string}`[] = [];
+                    const jurisdictionHandles: `0x${string}`[] = [];
+                    const jurisdictionProofs: `0x${string}`[] = [];
+                    
+                    const len = params.recipients.length;
+                    for (let i = 0; i < len; i++) {
+                        const catVal = params.compliance.categories?.[i] ?? 0;
+                        const encCat = await instance.createEncryptedInput(smartAccountClient.account!.address, owner.address)
+                            .add8(catVal)
+                            .encrypt();
+                        categoryHandles.push(bytesToHex(encCat.handles[0]));
+                        categoryProofs.push(bytesToHex(encCat.inputProof));
+
+                        const jurVal = params.compliance.jurisdictions?.[i] ?? 0;
+                        const encJur = await instance.createEncryptedInput(smartAccountClient.account!.address, owner.address)
+                            .add8(jurVal)
+                            .encrypt();
+                        jurisdictionHandles.push(bytesToHex(encJur.handles[0]));
+                        jurisdictionProofs.push(bytesToHex(encJur.inputProof));
+                    }
+
+                    const reportCallData = encodeFunctionData({
+                        abi: SmartWalletABI,
+                        functionName: "reportCompliance",
+                        args: [{
+                            flowTxHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+                            proxyAccount: smartAccountClient.account!.address as `0x${string}`,
+                            recipients: params.recipients,
+                            amounts: amountsInWei,
+                            categoryHandles: categoryHandles,
+                            categoryProofs: categoryProofs,
+                            jurisdictionHandles: jurisdictionHandles,
+                            jurisdictionProofs: jurisdictionProofs
+                        }]
+                    });
+
+                    calls.push({
+                        to: smartAccountClient.account!.address as `0x${string}`,
+                        data: reportCallData,
+                        value: 0n,
+                    });
+                }
+
                 let hash = await smartAccountClient.sendUserOperation({
                     account: smartAccountClient.account,
-                    calls: calls.map(c => ({
-                        to: c.to,
-                        value: c.value,
-                        data: c.data
-                    })),
+                    calls,
                 });
 
                 const receipt = await smartAccountClient.waitForUserOperationReceipt({

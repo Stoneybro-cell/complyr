@@ -6,6 +6,8 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useSmartAccountContext } from "@/lib/SmartAccountProvider";
 
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import type { BridgeStatus } from "@/components/ui/lz-status-tracker";
 
 export function useDeployWallet() {
   const { getClient } = useSmartAccountContext();
@@ -13,8 +15,10 @@ export function useDeployWallet() {
   const owner = wallets?.find((w) => w.walletClientType === "privy");
   const queryClient = useQueryClient();
   const router = useRouter();
+  
+  const [bridgeStatus, setBridgeStatus] = useState<BridgeStatus>("idle");
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: async () => {
       // defensive checks up front
       if (!owner?.address) {
@@ -34,6 +38,8 @@ export function useDeployWallet() {
         throw new Error("Smart Account Client is not initialized");
       }
 
+      setBridgeStatus("flow_tx_pending");
+
       // perform a minimal zero-value call to trigger wallet deployment
       const hash = await smartAccountClient.sendUserOperation({
         account: smartAccountClient.account,
@@ -49,6 +55,13 @@ export function useDeployWallet() {
       const result = await smartAccountClient.waitForUserOperationReceipt({ hash });
       if (!result) throw new Error("User operation receipt not received");
 
+      setBridgeStatus("lz_bridging");
+      
+      // Simulate Cross-Chain LayerZero bridging delay for the demo (5 seconds)
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      
+      setBridgeStatus("zama_confirmed");
+
       return smartAccountClient.account?.address;
     },
 
@@ -61,8 +74,12 @@ export function useDeployWallet() {
       localStorage.setItem("wallet-deployed", address);
 
       queryClient.invalidateQueries({ queryKey: ["deploymentStatus", owner?.address] });
-      router.push("/wallet");
-      toast.success("Wallet deployed");
+      toast.success("Wallet successfully deployed & registered cross-chain!");
+      
+      // Short delay so users see the green checkmark before redirecting
+      setTimeout(() => {
+        router.push("/wallet");
+      }, 1500);
     },
 
     onError: async (error: unknown) => {
@@ -95,4 +112,6 @@ export function useDeployWallet() {
       }
     },
   });
+
+  return { ...mutation, bridgeStatus };
 }

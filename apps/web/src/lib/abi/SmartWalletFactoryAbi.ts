@@ -6,6 +6,11 @@ export const SmartWalletFactoryABI = [
         "name": "_implementation",
         "type": "address",
         "internalType": "address"
+      },
+      {
+        "name": "_complianceBridge",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "stateMutability": "nonpayable"
@@ -42,6 +47,19 @@ export const SmartWalletFactoryABI = [
   },
   {
     "type": "function",
+    "name": "complianceBridge",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "createSmartAccount",
     "inputs": [
       {
@@ -57,7 +75,7 @@ export const SmartWalletFactoryABI = [
         "internalType": "address"
       }
     ],
-    "stateMutability": "nonpayable"
+    "stateMutability": "payable"
   },
   {
     "type": "function",
@@ -155,6 +173,11 @@ export const SmartWalletFactoryABI = [
         "internalType": "uint256"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "SmartWalletFactory__ComplianceBridgeUndeployed",
+    "inputs": []
   },
   {
     "type": "error",

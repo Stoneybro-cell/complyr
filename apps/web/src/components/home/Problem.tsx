@@ -1,27 +1,42 @@
+"use client";
+
 import React from 'react';
+import { motion } from 'framer-motion';
 
 export default function Problem() {
   return (
-    <section className="py-32 px-8 md:px-24 bg-[#0e0e0e] relative">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        <div className="lg:col-span-4">
-          <h2 className="font-['Inter'] text-[0.6875rem] uppercase tracking-widest text-[#919191] sticky top-32">The gap nobody talks about</h2>
-        </div>
-        <div className="lg:col-span-8">
-          <div className="border-l border-[#474747] pl-8 md:pl-16">
-            <blockquote className="font-['Public_Sans'] text-3xl md:text-5xl font-medium text-white leading-tight mb-12 italic">
-              "Blockchain payments tell you who was paid. They don't tell you why. For a business, that missing data is a liability."
-            </blockquote>
-            <div className="space-y-8 max-w-2xl">
-              <p className="font-['Inter'] text-lg text-[#c6c6c6] leading-relaxed">
-                Conventional onchain transactions are data-poor. While the movement of value is immutable, the business context—invoices, tax jurisdictions, expense categories—remains fragmented across emails, PDFs, and spreadsheets.
-              </p>
-              <p className="font-['Inter'] text-lg text-[#c6c6c6] leading-relaxed">
-                Complyr solves this by baking compliance logic directly into the transaction lifecycle using Fully Homomorphic Encryption (FHE) and cross-chain messaging.
-              </p>
-            </div>
-          </div>
-        </div>
+    <section className="py-32 px-6 md:px-12 bg-surface-container-low border-y border-outline-variant/20 overflow-hidden">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-12">
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="md:col-span-4"
+        >
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-outline">The gap nobody talks about</span>
+        </motion.div>
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+          className="md:col-span-8"
+        >
+          <h2 className="text-4xl md:text-5xl font-semibold tracking-tight mb-16 leading-tight">
+            Blockchain transactions lack the compliance info businesses are required to keep.
+          </h2>
+          <motion.div 
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, ease: "circOut", delay: 0.4 }}
+            className="h-px w-full bg-outline-variant/30 mb-8 origin-left"
+          />
+          <p className="text-lg text-on-surface-variant max-w-2xl leading-relaxed">
+            While the transaction itself is permanently recorded, the actual business context—like expense categories and compliance data—remains scattered across emails and spreadsheets. For a business, this missing connection is a massive regulatory liability.
+          </p>
+        </motion.div>
       </div>
     </section>
   );

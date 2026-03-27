@@ -1,30 +1,50 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen flex flex-col justify-center px-8 md:px-24 pt-20 border-b-[0.5px] border-white/10">
-      <div className="max-w-5xl z-10">
-        <p className="font-['Inter'] text-[0.6875rem] uppercase tracking-widest text-[#919191] mb-8">Infrastructure Standard 01-A</p>
-        <h1 className="font-['Public_Sans'] text-5xl md:text-[5.5rem] leading-[1.05] font-bold tracking-tight text-white mb-10">
+    <section className="min-h-screen flex flex-col justify-center px-6 md:px-12 relative overflow-hidden technical-grid">
+      <div className="absolute inset-0 grain-overlay" />
+      <div className="max-w-6xl w-full mx-auto z-10 flex flex-col items-center text-center">
+        <motion.div 
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 1.2, ease: "circOut" }}
+          className="h-px w-24 bg-primary mb-8 origin-left" 
+        />
+        <h1 className="text-[3.5rem] md:text-[6rem] leading-[0.95] font-bold tracking-tighter uppercase mb-8 max-w-5xl">
           The compliance layer for onchain business payments.
         </h1>
-        <p className="font-['Inter'] text-xl md:text-2xl text-[#c6c6c6] max-w-3xl leading-relaxed mb-12">
+        <p className="text-xl md:text-xl text-on-surface-variant max-w-3xl font-light mb-12 leading-relaxed mx-auto">
           Complyr attaches encrypted, auditable compliance records to every payment your business makes on-chain. Bridging the gap between cryptographic settlement and corporate regulatory requirements.
         </p>
-        <div className="flex flex-col md:flex-row gap-8 items-start md:items-center">
-          <Link href="/login" className="flex items-center justify-center bg-[#ffffff] text-[#1a1c1c] px-10 py-5 font-['Inter'] text-[0.75rem] font-black uppercase tracking-widest hover:bg-[#c7c6c6] transition-colors">
-            INITIATE DEPLOYMENT
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Link
+            href="/login"
+            className="bg-primary text-on-primary px-10 py-5 text-sm font-bold uppercase tracking-[0.2em] hover:bg-on-surface-variant hover:scale-[1.02] active:scale-[0.98] transition-all text-center"
+          >
+            Try the demo
           </Link>
-          <div className="flex items-center gap-4 text-[#474747]">
-            <span className="w-12 h-[1px] bg-[#474747]"></span>
-            <span className="font-['Inter'] text-[0.6875rem] uppercase tracking-widest">Live on Flow EVM Testnet</span>
-          </div>
+          <Link
+            href="https://github.com/Stoneybro/complyr#readme"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="border border-primary text-primary px-10 py-5 text-sm font-bold uppercase tracking-[0.2em] hover:bg-surface-container-highest hover:scale-[1.02] active:scale-[0.98] transition-all text-center"
+          >
+            Read the docs
+          </Link>
         </div>
       </div>
-      {/* Background Detail */}
-      <div className="absolute right-0 bottom-0 w-1/2 h-full opacity-20 hidden lg:block overflow-hidden pointer-events-none">
-        <img alt="abstract architectural geometry" className="w-full h-full object-cover grayscale contrast-125" data-alt="high contrast monochrome macro shot of brutalist concrete architecture with sharp shadows and geometric lines" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVXikFXNQ1V5v0I2A61mAd1rwcLBLZygrF3cq4IH0xxiZY2H29Mhbx-6O8iHrXgprLtlxo9Z2qG5ba9LKv9gOf7Rza5mq3WB3XK6SlZ_9r2sKfl6FZAcyvCJzLC1ybVXqxfoG2Y2CkoRgdaaa5reQ7jS4CV3oCDlvQ6wD4aiJaZNz8XwS3x9ek8-hXgNwo0galcEtjjHcytZH7vUP838MM4Xiu17sTsZMkwEAW9h-OkNIrMxW5k_Y-duV9blM-I5bzeZEuIbetNfA"/>
+      <div className="absolute bottom-12 left-6 md:left-12 flex items-center gap-4">
+        <div className="text-[10px] font-mono tracking-widest uppercase opacity-40">SYSTEM_STATUS: OPERATIONAL</div>
+        <motion.div 
+          animate={{ opacity: [1, 0, 1] }}
+          transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+          className="w-1.5 h-1.5 bg-black dark:bg-white" 
+        />
       </div>
     </section>
   );
