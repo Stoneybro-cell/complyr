@@ -8,7 +8,6 @@ import { RegistryAddress } from "@/lib/CA";
 import { RecurringPaymentParams } from "./types";
 import { checkSufficientBalance } from "./utils";
 
-import { getFhevmInstance } from "@/lib/fhevm";
 import { bytesToHex } from "viem";
 
 export function useRecurringPayment(availableEthBalance?: string) {
@@ -36,8 +35,7 @@ export function useRecurringPayment(availableEthBalance?: string) {
 
                 const amountsInWei = params.amounts.map((amount) => parseEther(amount));
 
-                // Initialize FHEVM and Encrypt Compliance Data
-                const instance = await getFhevmInstance();
+                // Initialize Dummy Compliance Data
                 const compliance = params.compliance || {};
                 const len = params.recipients.length;
 
@@ -47,19 +45,10 @@ export function useRecurringPayment(availableEthBalance?: string) {
                 const jurisdictionProofs: `0x${string}`[] = [];
 
                 for (let i = 0; i < len; i++) {
-                    const catVal = compliance.categories?.[i] ?? 0;
-                    const encCat = await instance.createEncryptedInput(RegistryAddress, owner.address)
-                        .add8(catVal)
-                        .encrypt();
-                    categoryHandles.push(bytesToHex(encCat.handles[0]));
-                    categoryProofs.push(bytesToHex(encCat.inputProof));
-
-                    const jurVal = compliance.jurisdictions?.[i] ?? 0;
-                    const encJur = await instance.createEncryptedInput(RegistryAddress, owner.address)
-                        .add8(jurVal)
-                        .encrypt();
-                    jurisdictionHandles.push(bytesToHex(encJur.handles[0]));
-                    jurisdictionProofs.push(bytesToHex(encJur.inputProof));
+                    categoryHandles.push("0x0000000000000000000000000000000000000000000000000000000000000000");
+                    categoryProofs.push("0x");
+                    jurisdictionHandles.push("0x0000000000000000000000000000000000000000000000000000000000000000");
+                    jurisdictionProofs.push("0x");
                 }
 
                 const callData = encodeFunctionData({

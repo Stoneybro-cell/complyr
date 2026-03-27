@@ -7,7 +7,6 @@ import { SingleTransferParams } from "./types";
 import { checkSufficientBalance } from "./utils";
 import { SmartWalletABI } from "@/lib/abi/SmartWalletAbi";
 
-import { getFhevmInstance } from "@/lib/fhevm";
 import { bytesToHex } from "viem";
 
 export function useSingleTransfer(availableEthBalance?: string) {
@@ -54,14 +53,6 @@ export function useSingleTransfer(availableEthBalance?: string) {
 
                 // If compliance metadata exists, bundle the reportCompliance call
                 if (params.compliance && (params.compliance.categories?.length || params.compliance.jurisdictions?.length)) {
-                    const instance = await getFhevmInstance();
-                    const encCat = await instance.createEncryptedInput(smartAccountClient.account!.address, owner.address)
-                        .add8(params.compliance.categories?.[0] ?? 0)
-                        .encrypt();
-                    const encJur = await instance.createEncryptedInput(smartAccountClient.account!.address, owner.address)
-                        .add8(params.compliance.jurisdictions?.[0] ?? 0)
-                        .encrypt();
-
                     const reportCallData = encodeFunctionData({
                         abi: SmartWalletABI,
                         functionName: "reportCompliance",
@@ -71,10 +62,10 @@ export function useSingleTransfer(availableEthBalance?: string) {
                                 proxyAccount: smartAccountClient.account!.address as `0x${string}`,
                                 recipients: [params.to],
                                 amounts: [amountInWei],
-                                categoryHandles: [bytesToHex(encCat.handles[0])],
-                                categoryProofs: [bytesToHex(encCat.inputProof)],
-                                jurisdictionHandles: [bytesToHex(encJur.handles[0])],
-                                jurisdictionProofs: [bytesToHex(encJur.inputProof)]
+                                categoryHandles: ["0x0000000000000000000000000000000000000000000000000000000000000000"],
+                                categoryProofs: ["0x"],
+                                jurisdictionHandles: ["0x0000000000000000000000000000000000000000000000000000000000000000"],
+                                jurisdictionProofs: ["0x"]
                             }
                         ]
                     });

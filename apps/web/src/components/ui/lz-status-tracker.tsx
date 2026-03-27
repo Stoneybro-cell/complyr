@@ -31,7 +31,7 @@ export function LZStatusTracker({ status, title = "Cross-Chain Compliance Sync",
     },
     {
       id: "zama",
-      label: "Zama fhEVM Verification",
+      label: "Compliance Verification",
       activeStates: [],
       completedStates: ["zama_confirmed"],
       icon: ShieldCheck,
@@ -88,7 +88,7 @@ export function LZStatusTracker({ status, title = "Cross-Chain Compliance Sync",
                   <span className="text-xs text-muted-foreground mt-1">
                     {index === 0 && "Waiting for transaction confirmation..."}
                     {index === 1 && "Relaying encrypted payload (1-2 mins)..."}
-                    {index === 2 && "Finalizing on Zama..."}
+                    {index === 2 && "Finalizing verification..."}
                   </span>
                 )}
                 {isCompleted && (
