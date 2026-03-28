@@ -2,15 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["fhevmjs"],
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-        config.resolve.fallback = {
-            ...config.resolve.fallback,
-            "tfhe_bg.wasm": false,
-        };
-    }
-    return config;
-  },
+  // Vercel / Next.js 16 defaults to Turbopack, failing if a custom webpack config 
+  // without a corresponding turbopack config is provided.
+  turbopack: {},
 };
 
 export default nextConfig;
