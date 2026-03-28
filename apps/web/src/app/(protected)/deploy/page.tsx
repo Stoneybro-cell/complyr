@@ -24,7 +24,7 @@ function Page() {
           </div>
           <div className=' flex flex-col'>
             <div className="">Complyr is built on ERC-4337 smart accounts.</div>
-            <div className=""> Only one Account per social login.</div>
+            <div className=""> Your demo account will be funded with 100 flow tokens for testing purposes.</div>
             <div className="">All transactions are gasless</div>
 
           </div>
@@ -49,18 +49,17 @@ function Page() {
           </Label>
           <Button
             variant={"default"}
-            className="w-full"
+            className="w-full flex items-center justify-center gap-2"
             onClick={() => deployWallet()}
             disabled={!checked || isPending}
           >
-            {isPending ? "Activating..." : "Activate Account"}
+            {isPending && <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />}
+            {bridgeStatus === "flow_tx_pending" && "Deploying Smart Wallet..."}
+            {bridgeStatus === "lz_bridging" && "Registering on Zama..."}
+            {bridgeStatus === "zama_confirmed" && "Success! Redirecting..."}
+            {bridgeStatus === "idle" && "Activate Account"}
           </Button>
 
-          {bridgeStatus !== "idle" && (
-            <div className="w-full mt-4 text-left">
-              <LZStatusTracker status={bridgeStatus} title="Wallet Activation & Sync" />
-            </div>
-          )}
         </div>
 
       </div>

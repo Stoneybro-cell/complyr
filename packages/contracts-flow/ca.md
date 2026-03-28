@@ -1,6 +1,12 @@
-export const RegistryAddress="0xd9eB514fE43eEc5455883d213Db12Fd6AF145aFe"
-export const SmartWalletFactoryAddress="0xfB36E64006F5551777922C3948062F1404AA6eFA"
-export const ComplianceRegistryAddress="0x722aD9117477Ad4Cb345F1419bd60FAFEACAfB00"
-export const ComplianceReceiverAddress="0xE1A3dd302709Fb0f1E957D1F6A68870c50E2c68a"
-export const complianceBridgeAddress="0x33156Bf5Dc961d5AFf26b1e4fc65623ef36BC352"
-export const VerifyingPaymasterAddress="0x027db89e019747c175C06fA956548a9bac353c56"
+# Contract Addresses
+
+## Flow EVM (Testnet)
+- **IntentRegistry**: `0x8Bd539Be7554752DC16B4d96AC857F3752B39cc1`
+- **ComplianceBridge**: `0x48898Dc7186b5AbD6028D12810CdeFf8eD8cb46B`
+- **SmartWallet Implementation**: `0x738DAF8cb17b3EB9a09C8d996420Ec4c0C4532D9`
+- **SmartWalletFactory**: `0x6D39aE04C757aE3658c957b240835Cc040923105`
+- **VerifyingPaymaster**: `0x722aD9117477Ad4Cb345F1419bd60FAFEACAfB00`
+
+## Zama fhEVM (Sepolia)
+- **ComplianceRegistry**: `0x722aD9117477Ad4Cb345F1419bd60FAFEACAfB00`
+- **ComplianceReceiver**: `0xE1A3dd302709Fb0f1E957D1F6A68870c50E2c68a`

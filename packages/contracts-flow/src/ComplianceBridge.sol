@@ -47,6 +47,10 @@ contract ComplianceBridge is OApp, IComplianceBridge {
     /// @notice Address of the SmartWalletFactory for proxy verification
     address public smartWalletFactory;
 
+    /// @notice Default LZ executor options: 200k gas on destination chain
+    /// @dev Used when callers pass empty _options (e.g. factory auto-registration)
+    uint128 public constant DEFAULT_DST_GAS = 200_000;
+
     /*//////////////////////////////////////////////////////////////
                                EVENTS
     //////////////////////////////////////////////////////////////*/
@@ -136,14 +140,15 @@ contract ComplianceBridge is OApp, IComplianceBridge {
         bytes calldata _options
     ) external override {
         bytes memory payload = abi.encode(MSG_REGISTER, proxyAccount, masterEOA);
+        bytes memory options = _resolveOptions(_options);
 
-        MessagingFee memory fee = _quote(targetEid, payload, _options, false);
+        MessagingFee memory fee = _quote(targetEid, payload, options, false);
         if (address(this).balance < fee.nativeFee) revert ComplianceBridge__InsufficientBridgeBalance();
 
         _lzSend(
             targetEid,
             payload,
-            _options,
+            options,
             fee,
             payable(address(this)) // refund excess to bridge treasury
         );
@@ -167,14 +172,15 @@ contract ComplianceBridge is OApp, IComplianceBridge {
         bytes calldata _options
     ) external override onlyAuthorized {
         bytes memory payload = abi.encode(MSG_REPORT, report);
+        bytes memory options = _resolveOptions(_options);
 
-        MessagingFee memory fee = _quote(targetEid, payload, _options, false);
+        MessagingFee memory fee = _quote(targetEid, payload, options, false);
         if (address(this).balance < fee.nativeFee) revert ComplianceBridge__InsufficientBridgeBalance();
 
         _lzSend(
             targetEid,
             payload,
-            _options,
+            options,
             fee,
             payable(address(this)) // refund excess to bridge treasury
         );
@@ -197,6 +203,31 @@ contract ComplianceBridge is OApp, IComplianceBridge {
         bytes calldata
     ) internal override {
         // No-op: Flow bridge doesn't accept incoming messages.
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                           INTERNAL HELPERS
+    //////////////////////////////////////////////////////////////*/
+
+    /**
+     * @dev Returns default LZ executor options when caller passes empty bytes.
+     *      This ensures the factory (which passes "") doesn't trigger
+     *      LZ_ULN_InvalidWorkerOptions.
+     */
+    function _resolveOptions(bytes calldata _options) internal pure returns (bytes memory) {
+        if (_options.length == 0) {
+            return OptionsBuilder.newOptions().addExecutorLzReceiveOption(DEFAULT_DST_GAS, 0);
+        }
+        return _options;
+    }
+
+    /**
+     * @dev Overrides OAppSender's _payNative to allow the bridge to use its own balance.
+     *      The default implementation requires msg.value == _nativeFee, but this bridge
+     *      is self-funded from its own treasury.
+     */
+    function _payNative(uint256 _nativeFee) internal pure override returns (uint256 nativeFee) {
+        return _nativeFee;
     }
 
     /// @notice Accept FLOW to fund the bridge treasury.

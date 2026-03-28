@@ -56,10 +56,28 @@ export function useDeployWallet() {
       if (!result) throw new Error("User operation receipt not received");
 
       setBridgeStatus("lz_bridging");
-      
-      // Simulate Cross-Chain LayerZero bridging delay for the demo (5 seconds)
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      
+
+      // Call backend relay to register on Zama Sepolia directly
+      const proxyAccount = smartAccountClient.account?.address;
+      const masterEOA = owner.address;
+
+      try {
+        const relayRes = await fetch("/api/relay/register-account", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ proxyAccount, masterEOA }),
+        });
+        const relayData = await relayRes.json();
+        if (!relayData.success) {
+          console.warn("[relay] Registration did not succeed:", relayData.error);
+        } else {
+          console.log("[relay] Registered on Zama Sepolia:", relayData.txHash ?? "already registered");
+        }
+      } catch (relayErr) {
+        // Non-fatal — wallet is deployed, relay is best-effort
+        console.warn("[relay] Relay call failed (non-fatal):", relayErr);
+      }
+
       setBridgeStatus("zama_confirmed");
 
       return smartAccountClient.account?.address;

@@ -117,7 +117,8 @@ contract SmartWalletFactory {
         userClones[owner] = account;
 
         // Auto-Register the business on Zama Sepolia (bridge self-funds the LZ fee)
-        IComplianceBridge(complianceBridge).registerAccount(account, owner, "");
+        ///@dev due to the instability of layerzero testnet DVNs, this is currently disabled
+      //  IComplianceBridge(complianceBridge).registerAccount(account, owner, "");
 
         emit AccountCreated(account, owner);
     }

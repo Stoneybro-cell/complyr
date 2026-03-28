@@ -53,9 +53,9 @@ contract HelperConfig is Script {
 
     function getFlowEthConfig() public pure returns (NetworkConfig memory) {
         return NetworkConfig({
-            implementation: 0x8EcC0e5B6e37b91EFdD7323603731A59073173a7, // SmartWalletImplementation
-            registry: 0xd9eB514fE43eEc5455883d213Db12Fd6AF145aFe,       // IntentRegistry
-            complianceBridge: 0x33156Bf5Dc961d5AFf26b1e4fc65623ef36BC352, 
+            implementation: 0x738DAF8cb17b3EB9a09C8d996420Ec4c0C4532D9, // SmartWalletImplementation
+            registry: 0x8Bd539Be7554752DC16B4d96AC857F3752B39cc1,       // IntentRegistry
+            complianceBridge: 0x48898Dc7186b5AbD6028D12810CdeFf8eD8cb46B, 
             owner: 0x0D96081998fd583334fd1757645B40fdD989B267,
             verifyingSigner: 0xb1640Df792f8549e545023c3f298E7af90532642,
             entryPoint: 0x0000000071727De22E5E9d8BAf0edAc6f37da032,

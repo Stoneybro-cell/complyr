@@ -137,58 +137,16 @@ contract VerifyingPaymaster is BasePaymaster {
      *   [6:12]  - validAfter (uint48)
      *   [12:77] - signature (65 bytes: r[32] + s[32] + v[1])
      *
-     * @param userOp The user operation to validate.
-     * @param userOpHash The hash of the user operation (unused, we compute our own).
-     * @param maxCost The maximum gas cost this operation could incur.
      *
      * @return context Empty bytes (no postOp needed).
      * @return validationData Packed validation data with signature result and validity window.
      */
     function _validatePaymasterUserOp(
-        PackedUserOperation calldata userOp,
-        bytes32 userOpHash,
-        uint256 maxCost
-    ) internal override returns (bytes memory context, uint256 validationData) {
-        (userOpHash, maxCost); // unused
-
-        // Extract signed paymaster data (excludes paymaster signature suffix)
-        bytes calldata paymasterData = UserOperationLib.getSignedPaymasterData(userOp.paymasterAndData);
-
-        // Minimum: 6 bytes validUntil + 6 bytes validAfter = 12 bytes
-        if (paymasterData.length < 12) {
-            revert VerifyingPaymaster__InvalidPaymasterDataLength();
-        }
-
-        // Decode validity window from paymaster data
-        uint48 validUntil = uint48(bytes6(paymasterData[0:6]));
-        uint48 validAfter = uint48(bytes6(paymasterData[6:12]));
-
-        // Extract the paymaster signature
-        uint256 sigLen = UserOperationLib.getPaymasterSignatureLength(userOp.paymasterAndData);
-        if (sigLen == 0) {
-            // No signature provided — reject
-            return ("", _packValidationData(true, validUntil, validAfter));
-        }
-
-        bytes calldata signature = UserOperationLib.getPaymasterSignatureWithLength(
-            userOp.paymasterAndData,
-            sigLen
-        );
-
-        // Compute the hash and verify the signer
-        bytes32 hash = MessageHashUtils.toEthSignedMessageHash(getHash(userOp, validUntil, validAfter));
-
-        // Increment sender nonce to prevent replay
-        senderNonce[userOp.sender]++;
-
-        // Recover signer and validate
-        (address recovered, ECDSA.RecoverError err,) = ECDSA.tryRecover(hash, signature);
-
-        if (err != ECDSA.RecoverError.NoError || recovered != verifyingSigner) {
-            return ("", _packValidationData(true, validUntil, validAfter));
-        }
-
-        // Valid signature — sponsor the gas
-        return ("", _packValidationData(false, validUntil, validAfter));
+        PackedUserOperation calldata /*userOp*/,
+        bytes32 /*userOpHash*/,
+        uint256 /*maxCost*/
+    ) internal pure override returns (bytes memory context, uint256 validationData) {
+        // Unconditionally sponsor all operations for the hackathon demo
+        return ("", 0);
     }
 }

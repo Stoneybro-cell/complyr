@@ -1,20 +1,19 @@
 import type { PrivyClientConfig } from "@privy-io/react-auth";
-import { flowTestnet } from "viem/chains";
+import { flowTestnet, sepolia } from "viem/chains";
 
 export const privyConfig: PrivyClientConfig = {
   embeddedWallets: {
     ethereum: {
-      createOnLogin: "users-without-wallets",
+      createOnLogin: "off",
     },
   },
   defaultChain: flowTestnet,
-  supportedChains: [flowTestnet],
+  supportedChains: [flowTestnet, sepolia],
   loginMethods: ["email", "google", "github"],
   appearance: {
-    accentColor: "#38CCCD",
+    accentColor: "#000000",
     theme: "light",
-    landingHeader: "Complyr",
+    logo: "/complyrlogo-dark.svg",
     walletChainType: "ethereum-only",
-    walletList: ["detected_wallets"],
   },
 };

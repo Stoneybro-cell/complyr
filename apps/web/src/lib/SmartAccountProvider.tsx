@@ -8,8 +8,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { usePrivy } from "@privy-io/react-auth";
-import { useWallets } from "@privy-io/react-auth";
+import { usePrivy, useWallets, useCreateWallet } from "@privy-io/react-auth";
 import { getSmartAccountClient } from "@/lib/smartAccountClient";
 import CustomSmartAccount from "@/lib/customSmartAccount";
 import type { SmartAccountClient } from "permissionless";
@@ -33,6 +32,7 @@ const SmartAccountContext = createContext<ContextValue | undefined>(undefined);
 export function SmartAccountProvider({ children }: { children: React.ReactNode }) {
   const { ready, authenticated } = usePrivy();
   const { wallets } = useWallets();
+  const { createWallet } = useCreateWallet();
   const embeddedWallet = wallets?.find((w) => w.walletClientType === "privy");
 
   const { initCustomAccount, isLoading: isCustomLoading, error: customError } =
@@ -197,16 +197,21 @@ export function SmartAccountProvider({ children }: { children: React.ReactNode }
     [initialize]
   );
 
-  // attempt init when auth/wallet ready
   useEffect(() => {
-    if (ready && authenticated && embeddedWallet) {
-      // start initialization (do not await here)
-      initialize().catch((e) => {
-        // ensure any unexpected error gets surfaced to console
-        console.error("[SmartAccount] initialization error", e);
-      });
+    console.debug("[SmartAccount] state change", { ready, authenticated, walletFound: !!embeddedWallet, walletAddress: embeddedWallet?.address });
+    if (ready && authenticated) {
+      if (embeddedWallet) {
+        console.info("[SmartAccount] triggering initialize...");
+        initialize().catch((e) => {
+          console.error("[SmartAccount] initialization error", e);
+        });
+      } else {
+        console.warn("[SmartAccount] authenticated but no embedded wallet found, calling createWallet");
+        createWallet().catch((err) => {
+          console.error("Manual wallet creation error", err);
+        });
+      }
     } else {
-      // reset state when user logs out or wallet changes
       setClient(null);
       setError(null);
       clearRetry();

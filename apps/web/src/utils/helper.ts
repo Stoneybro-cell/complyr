@@ -16,12 +16,10 @@ export async function fetchWalletBalance(smartAccountAddress: `0x${string}`) {
   // Get native FLOW balance directly from the chain
   const nativeBalance = await publicClient.getBalance({ address: smartAccountAddress });
 
-  // Get committed funds for native token (zeroAddress represents native FLOW)
   const committedFunds = await readContract({
     address: smartAccountAddress,
     abi: SmartWalletABI,
     functionName: "sCommittedFunds",
-    args: [zeroAddress],
   }) as bigint;
 
   // Available = total balance - committed
