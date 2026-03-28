@@ -4,6 +4,7 @@ import { Outfit, Geist_Mono, Geist } from "next/font/google";
 import { Provider } from "./provider";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import Script from "next/script";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -51,6 +52,7 @@ export default function RootLayout({
         className={`${outfit.variable} ${geistMono.variable} antialiased font-sans`}
         suppressHydrationWarning
       >
+        <Script src="https://unpkg.com/fhevmjs/bundle/fhevm.umd.cjs" strategy="beforeInteractive" />
         <Provider>{children}</Provider>
       </body>
     </html>

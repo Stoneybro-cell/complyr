@@ -1,4 +1,4 @@
-// lib/fhevm.ts — dynamically imported client-side only
+// lib/fhevm.ts — globally loaded client-side via UMD bundle
 
 const ZAMA_RPC_URL = "https://ethereum-sepolia-rpc.publicnode.com";
 const GATEWAY_URL = "https://gateway.sepolia.zama.ai/";
@@ -9,14 +9,22 @@ const ACL_CONTRACT_ADDRESS = "0xFee8407e2f5e3Ee68ad77cAE98c434e637f516e5";
 
 let instance: any = null;
 
+// Extend Window interface for the global fhevm object injected by the layout script
+declare global {
+  interface Window {
+    fhevm: any;
+  }
+}
+
 export async function getFhevmInstance() {
     if (instance) return instance;
 
-    // Next.js-idiomatic dynamic import: this ensures the WASM payload
-    // never touches the server bundle (which stops the Vercel build freeze)
-    const { createInstance } = await import("fhevmjs/web");
+    // Use Zama's official prebundled CDN to completely bypass Turbopack's WASM trace!
+    if (typeof window === "undefined" || !window.fhevm) {
+        throw new Error("fhevmjs bundle not loaded. Check the <Script> tag in your layout.");
+    }
 
-    instance = await createInstance({ 
+    instance = await window.fhevm.createInstance({ 
         networkUrl: ZAMA_RPC_URL,
         gatewayUrl: GATEWAY_URL,
         kmsContractAddress: KMS_CONTRACT_ADDRESS,
