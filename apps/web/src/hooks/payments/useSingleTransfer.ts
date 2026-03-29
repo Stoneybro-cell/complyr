@@ -57,16 +57,16 @@ export function useSingleTransfer(availableEthBalance?: string) {
                 // 2. Client-side Next/Dynamic FHEVM Encryption (SSR-safe)
                 let encryptedData = null;
                 const hasComplianceData = params.compliance && (params.compliance.categories?.length || params.compliance.jurisdictions?.length);
+                const statusUpdate = (s: string) => params.onStatusUpdate?.(s);
 
                 if (hasComplianceData) {
-                    const loadingId = toast.loading("Encrypting compliance payload locally (fhEVM)...");
+                    statusUpdate("Encrypting...");
+                    const loadingId = toast.loading("Encrypting compliance payload...");
                     try {
                         const fhevm = await getFhevmInstance();
                         const categories = params.compliance?.categories || [];
                         const jurisdictions = params.compliance?.jurisdictions || [];
 
-                        // The proof MUST correspond to the sender of the EVM transaction on Zama.
-                        // Since LayerZero is down, our active relay submits the tx, thus we use RELAY_ADDRESS.
                         const catInput = fhevm.createEncryptedInput(ZAMA_CONTRACT_ADDRESS, RELAY_ADDRESS);
                         catInput.add8(categories[0] !== undefined ? categories[0] : 0);
                         const catEnc = await catInput.encrypt();
@@ -89,24 +89,28 @@ export function useSingleTransfer(availableEthBalance?: string) {
                     } catch (e) {
                         console.error(e);
                         toast.dismiss(loadingId);
-                        throw new Error("Failed to encrypt compliance parameters dynamically.");
+                        statusUpdate("Error");
+                        throw new Error("Failed to encrypt compliance parameters.");
                     }
                 }
 
                 // 3. Send Base Flow Transaction
-                const txLoading = toast.loading("Signing and sending standard Flow transfer...");
+                statusUpdate("Signing...");
+                const txLoading = toast.loading("Sending standard Flow transfer...");
                 let hash = await smartAccountClient.sendUserOperation({
                     account: smartAccountClient.account,
                     calls,
                 });
 
+                statusUpdate("Confirming...");
                 const receipt = await smartAccountClient.waitForUserOperationReceipt({ hash });
                 toast.dismiss(txLoading);
                 const txHash = receipt.receipt.transactionHash;
 
                 // 4. Relay directly to Zama 
                 if (encryptedData) {
-                    toast.loading("Submitting ciphertexts and Zero-Knowledge Proofs to Zama Sepolia...", { id: "relay-toast" });
+                    statusUpdate("Anchoring...");
+                    toast.loading("Recording compliance on Zama...", { id: "relay-toast" });
 
                     try {
                         const relayRes = await fetch("/api/relay/compliance-record", {
@@ -127,16 +131,20 @@ export function useSingleTransfer(availableEthBalance?: string) {
                         const relayData = await relayRes.json();
                         if (!relayData.success) {
                             console.warn("[relay] Compliance recording did not succeed:", relayData.error);
-                            toast.error("Transfer succeeded, but Zama compliance failed.", { id: "relay-toast" });
+                            statusUpdate("Partial Success");
+                            toast.error("Transfer ok, compliance filing failed.", { id: "relay-toast" });
                         } else {
-                            toast.success("Transfer and compliance securely recorded cross-chain!", { id: "relay-toast" });
+                            statusUpdate("Complete");
+                            toast.success("Transfer & compliance recorded!", { id: "relay-toast" });
                         }
                     } catch (relayErr) {
                         console.error("[relay] Relay API call failed:", relayErr);
-                        toast.error("Transfer succeeded, but Zama relay endpoint failed.", { id: "relay-toast" });
+                        statusUpdate("Partial Success");
+                        toast.error("Transfer ok, relay failed.", { id: "relay-toast" });
                     }
                 } else {
-                    toast.success("FLOW transfer sent successfully!");
+                    statusUpdate("Complete");
+                    toast.success("FLOW transfer completed!");
                 }
 
                 return receipt;

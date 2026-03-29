@@ -32,7 +32,6 @@ const CATEGORIES = getCategoryOptions();
 
 type AddressFormData = {
     address: string;
-    entityId: string;
     jurisdiction: string;
     category: string;
 };
@@ -48,10 +47,9 @@ export function ContactForm({ walletAddress, contact, onClose }: ContactFormProp
     const [addresses, setAddresses] = useState<AddressFormData[]>(
         contact?.addresses.map(a => ({
             address: a.address,
-            entityId: a.entityId || '',
             jurisdiction: a.jurisdiction || '',
             category: a.category || '',
-        })) || [{ address: '', entityId: '', jurisdiction: '', category: '' }]
+        })) || [{ address: '', jurisdiction: '', category: '' }]
     );
 
     const { mutate: createContact, isPending: isCreating } = useCreateContact();
@@ -60,7 +58,7 @@ export function ContactForm({ walletAddress, contact, onClose }: ContactFormProp
     const isPending = isCreating || isUpdating;
 
     const addAddress = () => {
-        setAddresses([...addresses, { address: '', entityId: '', jurisdiction: '', category: '' }]);
+        setAddresses([...addresses, { address: '', jurisdiction: '', category: '' }]);
     };
 
     const removeAddress = (index: number) => {
@@ -104,7 +102,6 @@ export function ContactForm({ walletAddress, contact, onClose }: ContactFormProp
         // Prepare addresses with compliance data
         const addressData: CreateAddressInput[] = validAddresses.map(a => ({
             address: a.address.trim(),
-            entityId: a.entityId?.trim() || undefined,
             jurisdiction: a.jurisdiction && a.jurisdiction !== 'none' ? a.jurisdiction : undefined,
             category: a.category && a.category !== 'none' ? a.category : undefined,
         }));
@@ -206,20 +203,7 @@ export function ContactForm({ walletAddress, contact, onClose }: ContactFormProp
                                     />
                                 </Field>
 
-                                <FieldSeparator>Compliance (optional)</FieldSeparator>
-
-                                <Field>
-                                    <FieldLabel htmlFor={`entity-${index}`}>Entity ID</FieldLabel>
-                                    <Input
-                                        id={`entity-${index}`}
-                                        value={addr.entityId}
-                                        onChange={(e) => updateAddressField(index, 'entityId', e.target.value)}
-                                        placeholder="e.g., EMP-001, CTR-005"
-                                    />
-                                    <FieldDescription>
-                                        Employee, contractor, or vendor identifier
-                                    </FieldDescription>
-                                </Field>
+                                <FieldSeparator>Compliance Requirements</FieldSeparator>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <Field>

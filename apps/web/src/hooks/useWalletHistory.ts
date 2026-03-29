@@ -10,7 +10,7 @@ export interface TransactionItemProps {
     description: string;
     details: any;
     status: 'success' | 'failed' | 'partial';
-
+    txHash: string;
 }
 
 const formatTime = (timestamp: string): string => {
@@ -29,6 +29,7 @@ const mapTransactionToItem = (tx: Transaction): TransactionItemProps => {
         timestamp: new Date(Number(tx.timestamp) * 1000).toISOString(),
         status: 'success' as const,
         title: tx.title,
+        txHash: tx.txHash,
     };
 
     let details: any = {};
@@ -156,18 +157,20 @@ export const useWalletHistory = (walletAddress?: string) => {
                 // Filter out contract calls (non-transfer EXECUTE transactions)
                 if (tx.type === ActivityType.EXECUTE) {
                     const isTransfer = tx.details.functionCall === 'Token Transfer' || tx.details.functionCall === 'Native FLOW Transfer';
-                    return isTransfer;
+                    if (!isTransfer) return false;
                 }
 
-                // Filter out transactions before deployment (ghost transactions)
+                // Filter out any internal transfers that happen in the SAME transaction as deployment
+                // (e.g., initialization calls or ghost transactions)
+                const deployedTx = query.data?.deployedTx;
+                if (deployedTx && tx.txHash?.toLowerCase() === deployedTx.toLowerCase() && tx.type !== ActivityType.WALLET_CREATED) {
+                    return false;
+                }
+
+                // Filter out ghost transactions before deployment
                 const deployedAt = query.data?.deployedAt ? new Date(Number(query.data.deployedAt) * 1000) : null;
                 if (deployedAt) {
                     const txDate = new Date(tx.timestamp);
-                    // Allow slight buffer (e.g. 1 minute) or strict inequality? 
-                    // Assuming ghost tx is significantly older or specific glitch. 
-                    // Using strict comparison might hide WALLET_CREATED if seconds differ slightly.
-                    // But WALLET_CREATED should match deployedAt exactly if indexed correctly.
-                    // Safest is to allow WALLET_CREATED explicitly.
                     if (tx.type === ActivityType.WALLET_CREATED) return true;
                     return txDate >= deployedAt;
                 }
@@ -180,9 +183,7 @@ export const useWalletHistory = (walletAddress?: string) => {
         ...query,
         transactions,
         walletStats: {
-            totalActivity: query.data?.totalTransactionCount || 0,
-            // totalValue is no longer easy to aggregate on the client side without specific fields
-            // We can leave it as 0 or remove it if not used widely
+            totalActivity: transactions.length,
             totalValue: 0,
         }
     };

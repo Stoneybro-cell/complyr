@@ -47,12 +47,13 @@ const walletClient = createWalletClient({
 });
 
 // IntentRegistry Address (Flow Testnet)
-const REGISTRY_ADDRESS = '0x37c5c677146A19e61295E40F0518bAf3f94305fE';
+const REGISTRY_ADDRESS = '0x8bd539be7554752dc16b4d96ac857f3752b39cc1';
 
 // Minimal ABI for automation
 const ABI = parseAbi([
     'function checkUpkeep(bytes calldata checkData) external view returns (bool upkeepNeeded, bytes memory performData)',
-    'function performUpkeep(bytes calldata performData) external'
+    'function performUpkeep(bytes calldata performData) external',
+    'function getRegisteredWalletsCount() external view returns (uint256)'
 ]);
 
 async function main() {
@@ -61,8 +62,8 @@ async function main() {
     console.log(`   Registry: ${REGISTRY_ADDRESS}`);
     console.log(`   RPC: ${RPC_URL}`);
 
-    // Poll every 60 seconds
-    setInterval(checkAndExecute, 60000);
+    // Poll every 30 seconds
+    setInterval(checkAndExecute, 30000);
 
     // Run immediately on start
     await checkAndExecute();
@@ -70,14 +71,24 @@ async function main() {
 
 async function checkAndExecute() {
     try {
-        console.log(`[${new Date().toLocaleTimeString()}] Checking for pending intents...`);
+        const blockNumber = await publicClient.getBlockNumber();
+        console.log(`[${new Date().toLocaleTimeString()}] 🔍 Checking Block: ${blockNumber}`);
+
+        // Diagnostic: Check global state
+        const registeredCount = await publicClient.readContract({
+            address: REGISTRY_ADDRESS,
+            abi: ABI,
+            functionName: 'getRegisteredWalletsCount'
+        }) as bigint;
+
+        console.log(`   📊 Registry State: ${registeredCount} registered wallets`);
 
         const [upkeepNeeded, performData] = await publicClient.readContract({
             address: REGISTRY_ADDRESS,
             abi: ABI,
             functionName: 'checkUpkeep',
-            args: ['0x'] // Empty bytes for checkData
-        });
+            args: ['0x']
+        }) as [boolean, `0x${string}`];
 
         if (upkeepNeeded) {
             console.log(`✅ Upkeep needed! Executing transaction...`);

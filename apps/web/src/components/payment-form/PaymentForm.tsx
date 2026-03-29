@@ -34,7 +34,6 @@ const CATEGORY_OPTIONS = getCategoryOptions();
 type RecipientData = {
     address: string;
     amount: string;
-    entityId?: string;
     jurisdiction?: string;
     category?: string;
     contactName?: string;
@@ -83,37 +82,48 @@ const RecipientRow = React.memo(({
                 </Button>
             )}
         </div>
-        <div className="flex gap-2">
-            <Input
-                placeholder="ID (e.g., EMP-001, CTR-004)"
-                value={recipient.entityId || ""}
-                onChange={(e) => onUpdate(type, index, "entityId", e.target.value)}
-                className="flex-1 text-sm bg-muted/20"
-            />
+        <div className="grid grid-cols-2 gap-4 mt-2">
+            <div className="space-y-2">
+                <Select
+                    value={recipient.jurisdiction || ''}
+                    onValueChange={(value) => onUpdate(type, index, "jurisdiction", value)}
+                >
+                    <SelectTrigger className="w-full text-xs">
+                        <SelectValue placeholder="Jurisdiction" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {JURISDICTION_OPTIONS.map((j) => (
+                            <SelectItem key={j.value} value={j.value}>
+                                {j.label}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="space-y-2">
+                <Select
+                    value={recipient.category || ''}
+                    onValueChange={(value) => onUpdate(type, index, "category", value)}
+                >
+                    <SelectTrigger className="w-full text-xs">
+                        <SelectValue placeholder="Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {CATEGORY_OPTIONS.map((c) => (
+                            <SelectItem key={c.value} value={c.value}>
+                                {c.label}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
         </div>
-        {/* Show compliance info if loaded from contact */}
-        {(recipient.contactName || recipient.entityId || recipient.jurisdiction || recipient.category) && (
-            <div className="flex flex-wrap gap-1 text-xs">
-                {recipient.contactName && (
-                    <span className="px-2 py-0.5 bg-primary/10 text-primary rounded">
-                        {recipient.contactName}
-                    </span>
-                )}
-                {recipient.entityId && (
-                    <span className="px-2 py-0.5 bg-muted rounded">
-                        ID: {recipient.entityId}
-                    </span>
-                )}
-                {recipient.jurisdiction && (
-                    <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded">
-                        📍 {recipient.jurisdiction}
-                    </span>
-                )}
-                {recipient.category && (
-                    <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded">
-                        📋 {recipient.category}
-                    </span>
-                )}
+        {/* Show contact name if loaded from contact */}
+        {(recipient.contactName) && (
+            <div className="flex flex-wrap gap-1 text-xs mt-2">
+                <span className="px-2 py-0.5 bg-primary/10 text-primary rounded">
+                    Contact: {recipient.contactName}
+                </span>
             </div>
         )}
     </div>
@@ -144,9 +154,8 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
     const [recurringInterval, setRecurringInterval] = useState("86400"); // daily default
     const [recurringDuration, setRecurringDuration] = useState("");
     const [recurringStartDate, setRecurringStartDate] = useState("");
-
-    // Global payroll metadata (used when contact doesn't have it)
-    const [periodId, setPeriodId] = useState("");
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [transactionStatus, setTransactionStatus] = useState<string>("");
 
     // Contacts hook
     const { data: contacts = [] } = useContacts(walletAddress);
@@ -156,7 +165,16 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
     const batchMutation = useBatchTransfer(availableBalance);
     const recurringMutation = useRecurringPayment(availableBalance);
 
-    const isProcessing = singleMutation.isPending || batchMutation.isPending || recurringMutation.isPending;
+    // Update processing state when mutation changes
+    React.useEffect(() => {
+        const processing = singleMutation.isPending || batchMutation.isPending || recurringMutation.isPending;
+        setIsProcessing(processing);
+        if (!processing) {
+            // Short delay before clearing status after completion
+            const timer = setTimeout(() => setTransactionStatus(""), 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [singleMutation.isPending, batchMutation.isPending, recurringMutation.isPending]);
 
     // Check if current recipients have compliance data from contacts
     const getActiveRecipients = (): RecipientData[] => {
@@ -167,12 +185,12 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
 
     const hasContactCompliance = (): { hasJurisdiction: boolean; hasCategory: boolean; hasAny: boolean } => {
         const recipients = getActiveRecipients();
-        const hasJurisdiction = recipients.some(r => r.jurisdiction);
-        const hasCategory = recipients.some(r => r.category);
+        const hasJurisdiction = recipients.some(r => r.jurisdiction && r.jurisdiction !== "none");
+        const hasCategory = recipients.some(r => r.category && r.category !== "none");
         return {
             hasJurisdiction,
             hasCategory,
-            hasAny: hasJurisdiction || hasCategory || recipients.some(r => r.entityId)
+            hasAny: hasJurisdiction || hasCategory
         };
     };
 
@@ -188,7 +206,6 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
         setSingleRecipient({
             address: addr.address,
             amount: singleRecipient.amount, // Keep existing amount
-            entityId: addr.entityId,
             jurisdiction: addr.jurisdiction,
             category: addr.category,
             contactName: contact.name,
@@ -203,7 +220,6 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
         const newRecipients = contact.addresses.map(addr => ({
             address: addr.address,
             amount: "",
-            entityId: addr.entityId,
             jurisdiction: addr.jurisdiction,
             category: addr.category,
             contactName: contact.name,
@@ -258,21 +274,17 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
     // Build compliance metadata from recipients (per-recipient arrays, converted to enum values)
     const buildCompliance = (recipients: RecipientData[]) => {
         // Collect per-recipient data as string arrays
-        const entityIds = recipients.map(r => r.entityId || "");
         const jurisdictionStrings = recipients.map(r => r.jurisdiction);
         const categoryStrings = recipients.map(r => r.category);
 
         // Filter out empty arrays for optional fields
-        const hasEntityIds = entityIds.some(id => id);
-        const hasJurisdictions = jurisdictionStrings.some(j => j);
-        const hasCategories = categoryStrings.some(c => c);
+        const hasJurisdictions = jurisdictionStrings.some(j => j && j !== "none");
+        const hasCategories = categoryStrings.some(c => c && c !== "none");
 
         // Convert strings to enum values (numbers)
         return {
-            entityIds: hasEntityIds ? entityIds : undefined,
             jurisdictions: hasJurisdictions ? stringsToJurisdictions(jurisdictionStrings) : undefined,
             categories: hasCategories ? stringsToCategories(categoryStrings) : undefined,
-            referenceId: periodId || undefined,
         };
     };
 
@@ -280,45 +292,51 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setTransactionStatus("Initializing...");
 
         try {
             if (paymentType === "single") {
                 if (!singleRecipient.address || !singleRecipient.amount) {
                     toast.error("Please fill in recipient and amount");
+                    setTransactionStatus("");
                     return;
                 }
                 await singleMutation.mutateAsync({
                     to: singleRecipient.address as `0x${string}`,
                     amount: singleRecipient.amount,
                     compliance: buildCompliance([singleRecipient]),
+                    onStatusUpdate: setTransactionStatus,
                 });
                 setSingleRecipient({ address: "", amount: "" });
-                setPeriodId("");
             } else if (paymentType === "batch") {
                 const validRecipients = batchRecipients.filter(r => r.address && r.amount);
                 if (validRecipients.length < 2) {
                     toast.error("Batch payments require at least 2 recipients");
+                    setTransactionStatus("");
                     return;
                 }
                 await batchMutation.mutateAsync({
                     recipients: validRecipients.map(r => r.address as `0x${string}`),
                     amounts: validRecipients.map(r => r.amount),
                     compliance: buildCompliance(validRecipients),
+                    onStatusUpdate: setTransactionStatus,
                 });
                 setBatchRecipients([{ address: "", amount: "" }]);
-                setPeriodId("");
             } else if (paymentType === "recurring") {
                 if (!recurringName) {
                     toast.error("Please provide a name for this recurring payment");
+                    setTransactionStatus("");
                     return;
                 }
                 const validRecipients = recurringRecipients.filter(r => r.address && r.amount);
                 if (validRecipients.length === 0) {
                     toast.error("Please add at least one recipient");
+                    setTransactionStatus("");
                     return;
                 }
                 if (!recurringDuration) {
                     toast.error("Please specify the duration");
+                    setTransactionStatus("");
                     return;
                 }
                 await recurringMutation.mutateAsync({
@@ -329,17 +347,17 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
                     duration: parseInt(recurringDuration),
                     transactionStartTime: recurringStartDate ? Math.floor(new Date(recurringStartDate).getTime() / 1000) : 0,
                     compliance: buildCompliance(validRecipients),
+                    onStatusUpdate: setTransactionStatus,
                 });
                 // Reset
                 setRecurringName("");
                 setRecurringRecipients([{ address: "", amount: "" }]);
                 setRecurringDuration("");
-                setRecurringDuration("");
                 setRecurringStartDate("");
-                setPeriodId("");
             }
         } catch (error) {
             console.error("Payment error:", error);
+            setTransactionStatus("Failed");
         }
     };
 
@@ -386,7 +404,7 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
                 <CardHeader>
                     <CardTitle>Manual Payment Form</CardTitle>
                     <CardDescription>
-                        Create payments without using the AI chat. Load recipients from saved contacts to auto-fill compliance data.
+                        Create once-off or structured payments. Load recipients from saved contacts to auto-fill compliance requirements.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -433,29 +451,50 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
                                             onChange={(e) => setSingleRecipient({ ...singleRecipient, amount: e.target.value })}
                                         />
                                     </div>
-                                    {/* Show compliance if loaded from contact */}
-                                    {(singleRecipient.contactName || singleRecipient.entityId || singleRecipient.jurisdiction || singleRecipient.category) && (
-                                        <div className="flex flex-wrap gap-1 text-xs pt-2 border-t">
-                                            {singleRecipient.contactName && (
-                                                <span className="px-2 py-0.5 bg-primary/10 text-primary rounded">
-                                                    {singleRecipient.contactName}
-                                                </span>
-                                            )}
-                                            {singleRecipient.entityId && (
-                                                <span className="px-2 py-0.5 bg-muted rounded">
-                                                    ID: {singleRecipient.entityId}
-                                                </span>
-                                            )}
-                                            {singleRecipient.jurisdiction && (
-                                                <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded">
-                                                    📍 {singleRecipient.jurisdiction}
-                                                </span>
-                                            )}
-                                            {singleRecipient.category && (
-                                                <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded">
-                                                    📋 {singleRecipient.category}
-                                                </span>
-                                            )}
+                                    <div className="grid grid-cols-2 gap-4 pt-2 border-t mt-2">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="single-jurisdiction" className="text-xs">Jurisdiction</Label>
+                                            <Select
+                                                value={singleRecipient.jurisdiction || ''}
+                                                onValueChange={(value) => setSingleRecipient({ ...singleRecipient, jurisdiction: value })}
+                                            >
+                                                <SelectTrigger id="single-jurisdiction" className="text-xs">
+                                                    <SelectValue placeholder="Select..." />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {JURISDICTION_OPTIONS.map((j) => (
+                                                        <SelectItem key={j.value} value={j.value}>
+                                                            {j.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="single-category" className="text-xs">Category</Label>
+                                            <Select
+                                                value={singleRecipient.category || ''}
+                                                onValueChange={(value) => setSingleRecipient({ ...singleRecipient, category: value })}
+                                            >
+                                                <SelectTrigger id="single-category" className="text-xs">
+                                                    <SelectValue placeholder="Select..." />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {CATEGORY_OPTIONS.map((c) => (
+                                                        <SelectItem key={c.value} value={c.value}>
+                                                            {c.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                    {/* Show contact name if loaded from contact */}
+                                    {(singleRecipient.contactName) && (
+                                        <div className="flex flex-wrap gap-1 text-xs pt-2">
+                                            <span className="px-2 py-0.5 bg-primary/10 text-primary rounded">
+                                                Contact: {singleRecipient.contactName}
+                                            </span>
                                         </div>
                                     )}
                                 </div>
@@ -596,7 +635,7 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
                                         </Select>
                                     </div>
                                     <div className="col-span-2 text-xs text-muted-foreground mt-2 bg-muted p-2 rounded">
-                                        💡 Tip: For more advanced schedules (e.g., &quot;every 3 days&quot;, &quot;first of month&quot;), try creating the payment using the AI Chat.
+                                        💡 Tip: Schedules represent automated payments that trigger regularly until the duration expires.
                                     </div>
                                 </div>
                             </div>
@@ -612,29 +651,20 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
                                     </span>
                                 )}
                             </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="period-id">Reference ID (Optional)</Label>
-                                <Input
-                                    id="period-id"
-                                    placeholder="e.g., Invoice #123, Q1 Payroll, Bonus"
-                                    value={periodId}
-                                    onChange={(e) => setPeriodId(e.target.value)}
-                                />
-                                <p className="text-xs text-muted-foreground">
-                                    This reference ID will be included with the transaction metadata.
-                                </p>
-                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Make sure to select "None" for Category or Jurisdiction if they do not apply. Selecting a contact will pull their pre-configured compliance settings.
+                            </p>
                         </div>
 
                         <Button type="submit" className="w-full" disabled={isProcessing}>
                             {isProcessing ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Processing...
+                                    {transactionStatus || "Processing..."}
                                 </>
                             ) : (
-                                paymentType === "recurring" ? "Create Recurring Payment" : "Send Payment"
+                                transactionStatus === "Complete" ? "Payment Successful" :
+                                (paymentType === "recurring" ? "Create Schedule" : "Confirm Payment")
                             )}
                         </Button>
                     </form>

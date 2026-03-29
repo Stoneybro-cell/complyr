@@ -21,7 +21,10 @@
     "typescript": "5.2.2"
   },
   "dependencies": {
+    "@rescript/react": "^0.12.1",
     "envio": "2.32.3",
+    "rescript-envsafe": "5.0.0",
+    "rescript-schema": "^9.3.0",
     "viem": "^2.44.0"
   },
   "optionalDependencies": {

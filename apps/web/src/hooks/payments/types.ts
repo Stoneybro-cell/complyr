@@ -29,12 +29,14 @@ export type SingleTransferParams = {
     to: `0x${string}`;
     amount: string;
     compliance?: ComplianceMetadata;
+    onStatusUpdate?: (status: string) => void;
 };
 
 export type BatchTransferParams = {
     recipients: `0x${string}`[];
     amounts: string[];
     compliance?: ComplianceMetadata;
+    onStatusUpdate?: (status: string) => void;
 };
 
 export type RecurringPaymentParams = {
@@ -46,6 +48,7 @@ export type RecurringPaymentParams = {
     transactionStartTime: number;
     revertOnFailure?: boolean;
     compliance?: ComplianceMetadata;
+    onStatusUpdate?: (status: string) => void;
 };
 
 export type CancelIntentParams = {

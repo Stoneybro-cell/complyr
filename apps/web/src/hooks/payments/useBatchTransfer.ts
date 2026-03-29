@@ -57,9 +57,11 @@ export function useBatchTransfer(availableEthBalance?: string) {
                 // 2. Client-side FHEVM Dynamic Import
                 let encryptedData = null;
                 const hasComplianceData = params.compliance && (params.compliance.categories?.length || params.compliance.jurisdictions?.length);
+                const statusUpdate = (s: string) => params.onStatusUpdate?.(s);
 
                 if (hasComplianceData) {
-                    const loadingId = toast.loading("Encrypting batch compliance data locally (fhEVM)...");
+                    statusUpdate("Encrypting...");
+                    const loadingId = toast.loading("Encrypting batch compliance payload...");
                     try {
                         const fhevm = await getFhevmInstance();
                         const categories = params.compliance?.categories || [];
@@ -68,43 +70,60 @@ export function useBatchTransfer(availableEthBalance?: string) {
                         const handles: { categories: string[], jurisdictions: string[] } = { categories: [], jurisdictions: [] };
                         const proofs: { categories: string[], jurisdictions: string[] } = { categories: [], jurisdictions: [] };
 
-                        for (let i = 0; i < params.recipients.length; i++) {
+                        const encryptionPromises = params.recipients.map(async (recipient, i) => {
+                            const catValue = categories[i] !== undefined ? categories[i] : 0;
+                            const jurValue = jurisdictions[i] !== undefined ? jurisdictions[i] : 0;
+
                             const catInput = fhevm.createEncryptedInput(ZAMA_CONTRACT_ADDRESS, RELAY_ADDRESS);
-                            catInput.add8(categories[i] !== undefined ? categories[i] : 0);
+                            catInput.add8(catValue);
                             const catEnc = await catInput.encrypt();
-                            handles.categories.push(bytesToHex(catEnc.handles[0]));
-                            proofs.categories.push(bytesToHex(catEnc.inputProof));
 
                             const jurInput = fhevm.createEncryptedInput(ZAMA_CONTRACT_ADDRESS, RELAY_ADDRESS);
-                            jurInput.add8(jurisdictions[i] !== undefined ? jurisdictions[i] : 0);
+                            jurInput.add8(jurValue);
                             const jurEnc = await jurInput.encrypt();
-                            handles.jurisdictions.push(bytesToHex(jurEnc.handles[0]));
-                            proofs.jurisdictions.push(bytesToHex(jurEnc.inputProof));
-                        }
+
+                            return {
+                                category: { handle: bytesToHex(catEnc.handles[0]), proof: bytesToHex(catEnc.inputProof) },
+                                jurisdiction: { handle: bytesToHex(jurEnc.handles[0]), proof: bytesToHex(jurEnc.inputProof) }
+                            };
+                        });
+
+                        const results = await Promise.all(encryptionPromises);
+
+                        results.forEach(res => {
+                            handles.categories.push(res.category.handle);
+                            proofs.categories.push(res.category.proof);
+                            handles.jurisdictions.push(res.jurisdiction.handle);
+                            proofs.jurisdictions.push(res.jurisdiction.proof);
+                        });
                         
                         encryptedData = { handles, proofs };
                         toast.dismiss(loadingId);
                     } catch (e) {
                         console.error(e);
                         toast.dismiss(loadingId);
-                        throw new Error("Failed to encrypt compliance parameters. Check network connections.");
+                        statusUpdate("Error");
+                        throw new Error("Failed to encrypt batch compliance parameters.");
                     }
                 }
 
                 // 3. Send Base Flow Transaction
-                const txLoading = toast.loading("Signing and sending batch Flow transfer...");
+                statusUpdate("Signing...");
+                const txLoading = toast.loading(`Sending batch FLOW transfer (${params.recipients.length})...`);
                 let hash = await smartAccountClient.sendUserOperation({
                     account: smartAccountClient.account,
                     calls,
                 });
 
+                statusUpdate("Confirming...");
                 const receipt = await smartAccountClient.waitForUserOperationReceipt({ hash });
                 toast.dismiss(txLoading);
                 const txHash = receipt.receipt.transactionHash;
 
                 // 4. Relay directly to Zama
                 if (encryptedData) {
-                    toast.loading("Submitting ciphertexts and Zero-Knowledge Proofs to Zama Sepolia...", { id: "relay-toast" });
+                    statusUpdate("Anchoring...");
+                    toast.loading("Recording batch compliance on Zama...", { id: "relay-toast" });
 
                     try {
                         const relayRes = await fetch("/api/relay/compliance-record", {
@@ -125,25 +144,20 @@ export function useBatchTransfer(availableEthBalance?: string) {
                         const relayData = await relayRes.json();
                         if (!relayData.success) {
                             console.warn("[relay] Compliance recording did not succeed:", relayData.error);
-                            toast.error(
-                                `Batch transfer to ${params.recipients.length} recipients succeeded, but Zama compliance failed.`,
-                                { id: "relay-toast" }
-                            );
+                            statusUpdate("Partial Success");
+                            toast.error("Batch transfer ok, compliance failed.", { id: "relay-toast" });
                         } else {
-                            toast.success(
-                                `Batch transfer and compliance securely recorded for ${params.recipients.length} recipients!`,
-                                { id: "relay-toast" }
-                            );
+                            statusUpdate("Complete");
+                            toast.success(`Batch transfer & compliance recorded!`, { id: "relay-toast" });
                         }
                     } catch (relayErr) {
                         console.error("[relay] Relay API call failed:", relayErr);
-                        toast.error(
-                            "Transfer succeeded, but Zama relay endpoint failed.",
-                            { id: "relay-toast" }
-                        );
+                        statusUpdate("Partial Success");
+                        toast.error("Batch transfer ok, relay failed.", { id: "relay-toast" });
                     }
                 } else {
-                    toast.success(`Batch FLOW transfer completed! Sent to ${params.recipients.length} recipients.`);
+                    statusUpdate("Complete");
+                    toast.success("Batch FLOW transfer completed!");
                 }
 
                 return receipt;
