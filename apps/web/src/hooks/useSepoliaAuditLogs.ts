@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { createPublicClient, http, bytesToHex, formatEther } from "viem";
+import { createPublicClient, http, bytesToHex, formatEther, getAddress } from "viem";
 import { sepolia } from "viem/chains";
 import { useWallets } from "@privy-io/react-auth";
 import { ComplianceRegistryABI } from "@/lib/abi/ComplianceRegistryABI";
@@ -139,6 +139,8 @@ export function useSepoliaAuditLogs(proxyAccount?: string) {
             return;
         }
 
+        const checksummedAddress = getAddress(address);
+
         setIsDecrypting(true);
         const loadingId = toast.loading("Requesting KMS decryption signature...");
 
@@ -159,7 +161,7 @@ export function useSepoliaAuditLogs(proxyAccount?: string) {
             // 3. Ask the user to sign the token using their wallet (Metamask, etc)
             const signature = await provider.request({
                 method: "eth_signTypedData_v4",
-                params: [address, JSON.stringify(eip712)],
+                params: [checksummedAddress, JSON.stringify(eip712)],
             }) as string;
 
             toast.loading("Batch decrypting records via KMS...", { id: loadingId });
@@ -186,7 +188,7 @@ export function useSepoliaAuditLogs(proxyAccount?: string) {
                 publicKey,
                 signature.replace("0x", ""),
                 [REGISTRY_ADDRESS],
-                address,
+                checksummedAddress,
                 startTimestamp,
                 durationDays
             );
