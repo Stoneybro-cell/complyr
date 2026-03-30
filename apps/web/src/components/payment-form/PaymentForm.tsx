@@ -315,12 +315,20 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
                 });
                 setSingleRecipient({ address: "", amount: "" });
             } else if (paymentType === "batch") {
-                const validRecipients = batchRecipients.filter(r => r.address && r.amount);
-                if (validRecipients.length < 2) {
+                const addressesOnly = batchRecipients.filter(r => r.address);
+                if (addressesOnly.length < 2) {
                     toast.error("Batch payments require at least 2 recipients");
                     setTransactionStatus("");
                     return;
                 }
+                
+                const validRecipients = batchRecipients.filter(r => r.address && r.amount);
+                if (validRecipients.length !== addressesOnly.length) {
+                    toast.error("Please provide an amount for all recipients");
+                    setTransactionStatus("");
+                    return;
+                }
+                
                 await batchMutation.mutateAsync({
                     recipients: validRecipients.map(r => r.address as `0x${string}`),
                     amounts: validRecipients.map(r => r.amount),
@@ -334,9 +342,15 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
                     setTransactionStatus("");
                     return;
                 }
-                const validRecipients = recurringRecipients.filter(r => r.address && r.amount);
-                if (validRecipients.length === 0) {
+                const addressesOnly = recurringRecipients.filter(r => r.address);
+                if (addressesOnly.length === 0) {
                     toast.error("Please add at least one recipient");
+                    setTransactionStatus("");
+                    return;
+                }
+                const validRecipients = recurringRecipients.filter(r => r.address && r.amount);
+                if (validRecipients.length !== addressesOnly.length) {
+                    toast.error("Please provide an amount for all recipients");
                     setTransactionStatus("");
                     return;
                 }
@@ -647,17 +661,17 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
                             </div>
                         )}
 
-                        <div className="pt-2 pb-1 border-t mt-4">
-                            <p className="text-[10px] text-muted-foreground leading-relaxed text-left opacity-70">
-                                All compliance metadata attached to this transfer is encrypted end-to-end and is never exposed on the blockchain.
-                            </p>
+                        <div className="pt-2 mt-4">
+                            <div className="text-[10px] text-muted-foreground bg-muted p-2  leading-relaxed">
+                                Note: Complyr executes Fully Homomorphic Encryption (FHE) locally in your browser to guarantee data privacy. This requires significant CPU power and may temporarily freeze your browser window. Please do not close or reload the tab while processing.
+                            </div>
                         </div>
 
                         <Button type="submit" className="w-full" disabled={isProcessing}>
                             {isProcessing ? (
                                 <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    {transactionStatus || "Processing..."}
+                                    {transactionStatus !== "Encrypting..." && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    {transactionStatus === "Encrypting..." ? "Encrypting locally (this may take a moment)..." : (transactionStatus || "Processing...")}
                                 </>
                             ) : (
                                 transactionStatus === "Complete" ? "Payment Successful" :

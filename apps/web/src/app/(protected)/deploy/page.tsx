@@ -23,7 +23,7 @@ function Page() {
             Activate your Complyr account
           </div>
           <div className='flex flex-col text-sm text-muted-foreground gap-1'>
-            <div>Your enterprise account is ready to activate.</div>
+            <div>Your Complyr Business account is ready to activate.</div>
             <div>Demo accounts are pre-funded. All platform transactions are gasless.</div>
           </div>
           <Label className='hover:bg-muted/50 dark:hover:bg-muted/30 flex items-start gap-3 rounded-lg border p-3 has-[[aria-checked=true]]:border-black has-[[aria-checked=true]]:bg-muted dark:has-[[aria-checked=true]]:border-accent dark:has-[[aria-checked=true]]:bg-muted/50'>
@@ -57,6 +57,10 @@ function Page() {
             {bridgeStatus === "zama_confirmed" && "Success"}
             {bridgeStatus === "idle" && "Activate account"}
           </Button>
+
+          <div className="mt-2 text-xs text-muted-foreground bg-muted p-3 rounded text-left leading-relaxed">
+             <strong>Best on Desktop:</strong> Complyr is highly optimized for desktop and may encounter UI anomalies on mobile devices.
+          </div>
 
         </div>
 

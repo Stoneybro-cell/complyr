@@ -71,7 +71,6 @@ export function useRecurringPayment(availableEthBalance?: string) {
                             const jurInput = fhevm.createEncryptedInput(ZAMA_CONTRACT_ADDRESS, callerAddress);
                             jurInput.add8(jurValue);
                             const jurEnc = await jurInput.encrypt();
-
                             return {
                                 category: { handle: bytesToHex(catEnc.handles[0]), proof: bytesToHex(catEnc.inputProof) },
                                 jurisdiction: { handle: bytesToHex(jurEnc.handles[0]), proof: bytesToHex(jurEnc.inputProof) }
