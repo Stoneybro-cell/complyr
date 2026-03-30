@@ -1,6 +1,6 @@
 // Tests temporarily removed during refactor
 import {
-  MpSmartWallet,
+  SmartWallet,
 } from "generated";
 
 // Placeholder

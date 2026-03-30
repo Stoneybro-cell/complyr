@@ -10,6 +10,8 @@ import { checkSufficientBalance } from "./utils";
 import { getFhevmInstance } from "@/lib/fhevm";
 
 const ZAMA_CONTRACT_ADDRESS = "0x231Fcd3ae69f723B3AeFfe7B9B876Bb37C4Db4D6";
+// The relay wallet that is msg.sender when calling recordTransaction on Zama
+const RELAY_ADDRESS = "0x0D96081998fd583334fd1757645B40fdD989B267";
 
 export function useRecurringPayment(availableEthBalance?: string) {
     const { getClient } = useSmartAccountContext();
@@ -21,10 +23,8 @@ export function useRecurringPayment(availableEthBalance?: string) {
         mutationFn: async (params: RecurringPaymentParams) => {
 
             try {
-                // Calculate total commitment
-                const amountPerPayment = params.amounts.reduce((sum, amount) => sum + parseFloat(amount), 0);
+                // Calculate total commitment in Wei (BigInt-precise, no floats)
                 const totalPayments = Math.floor(params.duration / params.interval);
-                const totalCommitment = (amountPerPayment * totalPayments).toString();
 
                 const smartAccountClient = await getClient();
                 if (!smartAccountClient) {
@@ -35,6 +35,8 @@ export function useRecurringPayment(availableEthBalance?: string) {
                 }
 
                 const amountsInWei = params.amounts.map((amount) => parseEther(amount));
+                const amountPerPaymentWei = amountsInWei.reduce((sum, a) => sum + a, 0n);
+                const totalCommitmentWei = amountPerPaymentWei * BigInt(totalPayments);
                 const proxyAddress = smartAccountClient.account!.address;
 
                 // 1. Client-side Next/Dynamic FHEVM Encryption (SSR-safe)
@@ -53,9 +55,10 @@ export function useRecurringPayment(availableEthBalance?: string) {
                         const handles: { categories: string[], jurisdictions: string[] } = { categories: [], jurisdictions: [] };
                         const proofs: { categories: string[], jurisdictions: string[] } = { categories: [], jurisdictions: [] };
 
-                        // The caller address for proof generation must be the smart wallet (proxy account)
-                        // NOT the keeper or another hardcoded address
-                        const callerAddress = proxyAddress;
+                        // The caller address for proof generation MUST be the relay wallet
+                        // (the actual msg.sender when recordTransaction is called on Zama),
+                        // NOT the smart account proxy.
+                        const callerAddress = RELAY_ADDRESS;
 
                         const encryptionPromises = params.recipients.map(async (recipient, i) => {
                             const catValue = categories[i] !== undefined ? categories[i] : 0;
@@ -111,7 +114,9 @@ export function useRecurringPayment(availableEthBalance?: string) {
                         amountsInWei,
                         BigInt(params.duration),
                         BigInt(params.interval),
-                        BigInt(params.transactionStartTime),
+                        // If startTime is 0 (not set by user), use current time so the
+                        // contract never sees a value in the past
+                        BigInt(params.transactionStartTime || Math.floor(Date.now() / 1000)),
                         categoryHandles,
                         categoryProofs,
                         jurisdictionHandles,
@@ -119,7 +124,7 @@ export function useRecurringPayment(availableEthBalance?: string) {
                     ],
                 });
 
-                // 3. Send Base Flow Transaction
+                // 3. Send createIntent via UserOp
                 statusUpdate("Signing...");
                 const txLoading = toast.loading("Indexing recurring payment...");
                 const hash = await smartAccountClient.sendUserOperation({
@@ -138,6 +143,14 @@ export function useRecurringPayment(availableEthBalance?: string) {
                     hash,
                 });
                 toast.dismiss(txLoading);
+
+                // Guard: if the UserOp was included but the inner call reverted, stop here
+                if (!receipt.success) {
+                    const revertMsg = receipt.reason ?? "createIntent call reverted on-chain";
+                    console.error("[recurring] UserOp reverted:", revertMsg, receipt);
+                    throw new Error(`Transaction reverted: ${revertMsg}`);
+                }
+
                 const txHash = receipt.receipt.transactionHash;
 
                 // 4. Relay directly to Zama

@@ -3,6 +3,8 @@ import { sepolia } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 import { NextRequest, NextResponse } from "next/server";
 
+export const maxDuration = 60;
+
 const REGISTRY_ABI = [
   {
     name: "registerAccount",

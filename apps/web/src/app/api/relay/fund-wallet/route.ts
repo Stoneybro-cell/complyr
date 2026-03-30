@@ -3,6 +3,8 @@ import { createWalletClient, http, createPublicClient, parseEther } from "viem";
 import { sepolia } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
     try {
         const { targetWallet } = await req.json();

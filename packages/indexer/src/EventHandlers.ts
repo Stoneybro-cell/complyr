@@ -117,6 +117,14 @@ SmartWallet.Executed.handler(async ({ event, context }) => {
   const wallet = await context.Wallet.get(walletId);
 
   if (wallet) {
+    // Ignore initialization transactions (0 value, empty data)
+    if (
+      event.params.value.toString() === "0" &&
+      (event.params.data === "0x" || event.params.data === "")
+    ) {
+      return;
+    }
+
     const txHash = event.transaction.hash;
     const selector = event.params.data.slice(0, 10);
     const logIndex = event.logIndex;
