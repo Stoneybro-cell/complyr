@@ -50,12 +50,12 @@ export function AuditTrail({ walletAddress, recordsOverride, onDecrypt, isDecryp
         <Card className="h-full flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                        <ShieldCheck className="h-5 w-5 text-primary" />
-                        True Compliance Ledger
+                    <CardTitle className="text-xl flex items-center gap-2">
+                        <ShieldCheck className="h-5 w-5" />
+                        Transaction Logs
                     </CardTitle>
                     <CardDescription className="mt-1">
-                        Immutable Sepolia audit trail with end-to-end Zama decryption.
+                        Immutable ledger of all payments and their associated compliance metadata.
                     </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
@@ -71,7 +71,6 @@ export function AuditTrail({ walletAddress, recordsOverride, onDecrypt, isDecryp
                             size="sm" 
                             onClick={decryptLedger} 
                             disabled={currentIsDecrypting || records.length === 0 || records.every(r => r.decrypted)}
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
                         >
                             {currentIsDecrypting ? (
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -80,7 +79,7 @@ export function AuditTrail({ walletAddress, recordsOverride, onDecrypt, isDecryp
                             ) : (
                                 <LockIcon className="h-4 w-4 mr-2" />
                             )}
-                            {records.length > 0 && records.every(r => r.decrypted) ? "Ledger Decrypted" : "Decrypt Ledger"}
+                            {records.length > 0 && records.every(r => r.decrypted) ? "Data Decrypted" : "Authorize View"}
                         </Button>
                     )}
                 </div>
@@ -88,7 +87,7 @@ export function AuditTrail({ walletAddress, recordsOverride, onDecrypt, isDecryp
             <CardContent className="space-y-6 flex-1 overflow-auto">
                 <div className="flex gap-2">
                     <Input
-                        placeholder="Search by TxHash or Recipient Address..."
+                        placeholder="Search by transaction hash or recipient address"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="max-w-md"
@@ -102,14 +101,14 @@ export function AuditTrail({ walletAddress, recordsOverride, onDecrypt, isDecryp
                         </div>
                     ) : displayRecords.length > 0 ? (
                         <>
-                            <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 grid grid-cols-2 gap-4">
+                            <div className="bg-muted/30 border rounded-lg p-4 grid grid-cols-2 gap-4">
                                 <div>
-                                    <div className="text-xs text-muted-foreground uppercase tracking-wider">Payments Found</div>
-                                    <div className="text-2xl font-bold">{displayRecords.length}</div>
+                                    <div className="text-[10px] text-muted-foreground uppercase font-mono tracking-widest">TRANSACTIONS</div>
+                                    <div className="text-xl font-bold font-mono">{displayRecords.length}</div>
                                 </div>
                                 <div>
-                                    <div className="text-xs text-muted-foreground uppercase tracking-wider">Total Value</div>
-                                    <div className="text-2xl font-bold">{totalPaid.toLocaleString(undefined, { maximumFractionDigits: 4 })} FLOW</div>
+                                    <div className="text-[10px] text-muted-foreground uppercase font-mono tracking-widest">VOLUME</div>
+                                    <div className="text-xl font-bold font-mono">{totalPaid.toLocaleString(undefined, { maximumFractionDigits: 4 })} FLOW</div>
                                 </div>
                             </div>
 
@@ -128,17 +127,17 @@ export function AuditTrail({ walletAddress, recordsOverride, onDecrypt, isDecryp
                                                     View Source Tx <ExternalLink className="h-3 w-3" />
                                                 </a>
                                             </div>
-                                            <div className="flex gap-2 items-center">
-                                                {record.decrypted ? (
-                                                    <span className="flex items-center text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
-                                                        <UnlockIcon className="h-3 w-3 mr-1" /> Decrypted
-                                                    </span>
-                                                ) : (
-                                                    <span className="flex items-center text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200">
-                                                        <LockIcon className="h-3 w-3 mr-1" /> Encrypted
-                                                    </span>
-                                                )}
-                                            </div>
+                                             <div className="flex gap-2 items-center">
+                                                 {record.decrypted ? (
+                                                     <span className="flex items-center text-[10px] font-mono tracking-widest uppercase border px-2 py-0.5 rounded bg-muted/30">
+                                                         [ VIEW AUTHORIZED ]
+                                                     </span>
+                                                 ) : (
+                                                     <span className="flex items-center text-[10px] font-mono tracking-widest uppercase border px-2 py-0.5 rounded opacity-50">
+                                                         [ ENCRYPTED ]
+                                                     </span>
+                                                 )}
+                                             </div>
                                         </div>
                                         
                                         <div className="space-y-2 mt-3 pl-2 border-l-2 border-muted">
@@ -156,9 +155,9 @@ export function AuditTrail({ walletAddress, recordsOverride, onDecrypt, isDecryp
                                                                 Cat: {record.categories[i]}
                                                             </span>
                                                         ) : (
-                                                            <span className="px-2 py-1 bg-muted rounded text-xs font-mono opacity-50 blur-[2px]">
-                                                                {record.encryptedCategories[i].slice(0, 10)}...
-                                                            </span>
+                                                              <span className="px-2 py-0.5 bg-muted rounded text-[10px] font-mono tracking-tighter opacity-10">
+                                                                  {record.encryptedCategories[i].slice(0, 15)}...
+                                                              </span>
                                                         )}
                                                     </div>
                                                     <div className="col-span-3">
@@ -180,8 +179,9 @@ export function AuditTrail({ walletAddress, recordsOverride, onDecrypt, isDecryp
                             </div>
                         </>
                     ) : (
-                        <div className="text-center py-12 text-muted-foreground bg-muted/20 rounded-lg border border-dashed">
-                            No immutable audit records found on Sepolia for this wallet.
+                        <div className="text-center py-12 text-muted-foreground bg-muted/20 rounded-lg border border-dashed flex flex-col gap-1 items-center">
+                            <span className="font-semibold">No payments recorded yet.</span>
+                            <span className="text-xs">Compliance records will appear here after transactions are executed.</span>
                         </div>
                     )}
                 </div>

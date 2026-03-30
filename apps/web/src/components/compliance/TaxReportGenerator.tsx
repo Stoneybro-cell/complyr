@@ -100,15 +100,18 @@ export function TaxReportGenerator({ data }: TaxReportGeneratorProps) {
     return (
         <Card className="h-full">
             <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
+                <CardTitle className="text-xl flex items-center gap-2">
                     <FileText className="h-5 w-5" />
-                    Tax Report Generator
+                    Report Generator
                 </CardTitle>
+                <div className="text-sm text-muted-foreground mt-1 font-medium">
+                    Generate structured compliance reports for regulatory submission.
+                </div>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">Time Period</label>
+                        <label className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Reporting Period</label>
                         <Select value={timePeriod} onValueChange={setTimePeriod}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select period" />
@@ -130,7 +133,7 @@ export function TaxReportGenerator({ data }: TaxReportGeneratorProps) {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">Jurisdiction</label>
+                        <label className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Regulatory Jurisdiction</label>
                         <Select value={jurisdiction} onValueChange={setJurisdiction}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select jurisdiction" />
@@ -145,7 +148,7 @@ export function TaxReportGenerator({ data }: TaxReportGeneratorProps) {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">Category</label>
+                        <label className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Payment Category</label>
                         <Select value={category} onValueChange={setCategory}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select category" />
@@ -160,13 +163,11 @@ export function TaxReportGenerator({ data }: TaxReportGeneratorProps) {
                     </div>
                 </div>
 
-                <div className="bg-muted/50 rounded-lg p-4 border">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-semibold text-sm">Preview: {filteredData.length} records found</h3>
-                        <span className="text-sm font-mono font-medium">
-                            Total: {totalAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })} FLOW
-                        </span>
+                <div className="bg-muted/30 rounded-lg p-4 border border-muted-foreground/10">
+                    <div className="flex justify-between items-center mb-1">
+                        <h3 className="font-bold text-sm">Compliance Manifest Preview</h3>
                     </div>
+                    <p className="text-[10px] text-muted-foreground mb-4">Each row represents a verified payment and its associated compliance metadata.</p>
 
                     <div className="max-h-[300px] overflow-y-auto hidden md:block">
                         <table className="w-full text-sm text-left">

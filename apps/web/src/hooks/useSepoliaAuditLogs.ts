@@ -115,9 +115,27 @@ export function useSepoliaAuditLogs(proxyAccount?: string) {
     const decryptLedger = async () => {
         if (!proxyAccount || records.length === 0) return;
         
+        let provider: any;
+        let address: string | undefined;
+
         const ownerWallet = wallets?.find((w) => w.walletClientType === "privy");
-        if (!ownerWallet) {
-            toast.error("Please connect your wallet to decrypt");
+        if (ownerWallet) {
+            provider = await ownerWallet.getEthereumProvider();
+            address = ownerWallet.address;
+        } else if (typeof window !== "undefined" && (window as any).ethereum) {
+            provider = (window as any).ethereum;
+            try {
+                const accounts = await provider.request({ method: 'eth_accounts' });
+                if (accounts && accounts.length > 0) {
+                    address = accounts[0];
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        if (!provider || !address) {
+            toast.error("Please connect your external wallet to decrypt");
             return;
         }
 
@@ -125,7 +143,6 @@ export function useSepoliaAuditLogs(proxyAccount?: string) {
         const loadingId = toast.loading("Requesting KMS decryption signature...");
 
         try {
-            const provider = await ownerWallet.getEthereumProvider();
             
             // Note: Since we use Zama relayer-sdk, getFhevmInstance uses CDN
             const fhevm = await getFhevmInstance();
@@ -140,10 +157,9 @@ export function useSepoliaAuditLogs(proxyAccount?: string) {
             const eip712 = fhevm.createEIP712(publicKey, [REGISTRY_ADDRESS], startTimestamp, durationDays);
             
             // 3. Ask the user to sign the token using their wallet (Metamask, etc)
-            toast.loading("Please sign the message in your wallet to decrypt...", { id: loadingId });
             const signature = await provider.request({
                 method: "eth_signTypedData_v4",
-                params: [ownerWallet.address, JSON.stringify(eip712)],
+                params: [address, JSON.stringify(eip712)],
             }) as string;
 
             toast.loading("Batch decrypting records via KMS...", { id: loadingId });
@@ -170,7 +186,7 @@ export function useSepoliaAuditLogs(proxyAccount?: string) {
                 publicKey,
                 signature.replace("0x", ""),
                 [REGISTRY_ADDRESS],
-                ownerWallet.address,
+                address,
                 startTimestamp,
                 durationDays
             );

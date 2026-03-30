@@ -3,17 +3,25 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import useWalletDeployment from "@/hooks/useWalletDeployment";
+import { usePrivy } from "@privy-io/react-auth";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function DeploymentGuard({ children }: { children: React.ReactNode }) {
   const { data: isDeployed, isLoading, error, refetch } = useWalletDeployment();
+  const { ready, authenticated } = usePrivy();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    // Only redirect if we have a definitive answer (no errors)
-    if (!isLoading && !error) {
+    // If privy is ready and user is not authenticated, redirect to login
+    if (ready && !authenticated) {
+      router.replace("/login");
+      return;
+    }
+
+    // Only redirect if we have a definitive answer (no errors) and user is authenticated
+    if (ready && authenticated && !isLoading && !error) {
       const onDeployPage = pathname.startsWith("/deploy");
       const onWalletPage = pathname.startsWith("/wallet");
       if (isDeployed && onDeployPage) {
@@ -22,15 +30,15 @@ export default function DeploymentGuard({ children }: { children: React.ReactNod
         router.replace("/deploy");
       }
     }
-  }, [isDeployed, isLoading, error, router, pathname]);
+  }, [isDeployed, isLoading, error, router, pathname, ready, authenticated]);
 
-  if (isLoading) {
+  if (!ready || !authenticated || isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
           <p className="text-muted-foreground animate-pulse">
-            Verifying wallet status...
+            Verifying session status...
           </p>
         </div>
       </div>

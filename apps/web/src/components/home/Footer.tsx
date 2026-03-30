@@ -53,7 +53,7 @@ export default function Footer() {
           © 2024 COMPLYR INFRASTRUCTURE. PL Genesis: Frontiers of Collaboration.
         </p>
         <p className="font-inter text-[10px] uppercase tracking-widest text-gray-300 dark:text-gray-800">
-          Powered by LayerZero and Envio. No user data is stored without encryption.
+          MATHEMATICALLY GUARANTEED PRIVACY. ENTERPRISE-GRADE ON-CHAIN SETTLEMENT.
         </p>
       </div>
     </footer>

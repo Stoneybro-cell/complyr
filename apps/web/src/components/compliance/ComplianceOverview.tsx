@@ -16,29 +16,29 @@ export function ComplianceOverview({ stats }: { stats: ComplianceStats | null })
             {/* Health Score Card */}
             <Card className="@container/card">
                 <CardHeader>
-                    <CardDescription>Compliance Health</CardDescription>
+                    <CardDescription className="text-sm font-bold text-foreground">Compliance Status</CardDescription>
                     <CardTitle className="text-3xl font-semibold tabular-nums @[250px]/card:text-3xl">
                         {stats.healthScore}%
                     </CardTitle>
                     <CardAction>
                         {stats.healthScore > 80 ? (
-                            <Badge variant="outline" className="border-green-500 text-green-500 gap-1 text-xs">
-                                <CheckCircle2 className="h-4 w-4" /> Healthy
+                            <Badge variant="outline" className="border-foreground/20 text-foreground gap-1 text-[10px] uppercase font-mono tracking-widest">
+                                <CheckCircle2 className="h-3.5 w-3.5" /> Healthy
                             </Badge>
                         ) : (
-                            <Badge variant="outline" className="border-amber-500 text-amber-500 gap-1 text-xs">
-                                <AlertCircle className="h-4 w-4" /> Action Needed
+                            <Badge variant="outline" className="border-destructive/30 text-destructive gap-1 text-[10px] uppercase font-mono tracking-widest">
+                                <AlertCircle className="h-3.5 w-3.5" /> Review Required
                             </Badge>
                         )}
                     </CardAction>
                 </CardHeader>
-                <CardFooter className="flex-col items-start gap-1.5 text-lg">
-                    <p className="text-muted-foreground">
-                        {stats.totalCategorized} categorized / {stats.totalUncategorized} pending
+                <CardFooter className="flex-col items-start gap-3 mt-4">
+                    <p className="text-sm font-semibold text-muted-foreground font-mono">
+                        {stats.totalCategorized} categorized / {stats.totalUncategorized} pending validation
                     </p>
                     <Progress
                         value={stats.healthScore}
-                        className={`mt-2 [&>[data-slot=progress-indicator]]:${stats.healthScore > 80 ? 'bg-green-500' : 'bg-amber-500'}`}
+                        className="h-1 bg-muted [&>[data-slot=progress-indicator]]:bg-foreground"
                     />
                 </CardFooter>
             </Card>
@@ -46,27 +46,29 @@ export function ComplianceOverview({ stats }: { stats: ComplianceStats | null })
             {/* Jurisdiction Breakdown */}
             <Card className="@container/card">
                 <CardHeader>
-                    <CardDescription>By Jurisdiction</CardDescription>
-                    <CardTitle className="text-2xl font-medium">Top Regions</CardTitle>
+                    <CardDescription className="text-sm font-bold text-foreground">Jurisdiction Distribution</CardDescription>
+                    <CardTitle className="text-xs font-medium text-muted-foreground leading-relaxed">
+                        Breakdown of payments by regulatory jurisdiction derived from encrypted transaction metadata.
+                    </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0">
-                    <div className="space-y-2 mt-2">
+                    <div className="space-y-3 mt-4">
                         {Object.entries(stats.byJurisdiction)
                             .sort(([, a], [, b]) => b.amount - a.amount)
                             .slice(0, 4)
                             .map(([jur, data]) => (
-                                <div key={jur} className="flex items-center justify-between text-lg">
+                                <div key={jur} className="flex items-center justify-between text-xs">
                                     <div className="flex items-center gap-2">
-                                        <Badge variant="secondary" className="text-lg font-normal">
+                                        <Badge variant="secondary" className="px-1.5 py-0 h-5 text-[10px] font-mono tracking-tight">
                                             {jur}
                                         </Badge>
-                                        <span className="text-lg text-muted-foreground">({data.count})</span>
+                                        <span className="text-muted-foreground">({data.count})</span>
                                     </div>
-                                    <span className="font-mono text-lg">{formatCurrency(data.amount)}</span>
+                                    <span className="font-mono">{formatCurrency(data.amount)}</span>
                                 </div>
                             ))}
                         {Object.keys(stats.byJurisdiction).length === 0 && (
-                            <p className="text-lg text-muted-foreground">No data available</p>
+                            <p className="text-sm text-muted-foreground">No compliance records available.</p>
                         )}
                     </div>
                 </CardContent>
@@ -75,27 +77,29 @@ export function ComplianceOverview({ stats }: { stats: ComplianceStats | null })
             {/* Category Breakdown */}
             <Card className="@container/card">
                 <CardHeader>
-                    <CardDescription>By Category</CardDescription>
-                    <CardTitle className="text-2xl   font-medium">Top Categories</CardTitle>
+                    <CardDescription className="text-sm font-bold text-foreground">Payment Classification</CardDescription>
+                    <CardTitle className="text-xs font-medium text-muted-foreground leading-relaxed">
+                        Distribution of payments by declared transaction category.
+                    </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0">
-                    <div className="space-y-2 mt-2">
+                    <div className="space-y-3 mt-4">
                         {Object.entries(stats.byCategory)
                             .sort(([, a], [, b]) => b.amount - a.amount)
                             .slice(0, 4)
                             .map(([cat, data]) => (
-                                <div key={cat} className="flex items-center justify-between text-lg">
+                                <div key={cat} className="flex items-center justify-between text-xs">
                                     <div className="flex items-center gap-2">
-                                        <Badge variant="outline" className="text-lg font-normal">
+                                        <Badge variant="outline" className="px-1.5 py-0 h-5 text-[10px] uppercase font-mono tracking-tight">
                                             {cat}
                                         </Badge>
-                                        <span className="text-lg text-muted-foreground">({data.count})</span>
+                                        <span className="text-muted-foreground">({data.count})</span>
                                     </div>
-                                    <span className="font-mono text-lg">{formatCurrency(data.amount)}</span>
+                                    <span className="font-mono">{formatCurrency(data.amount)}</span>
                                 </div>
                             ))}
                         {Object.keys(stats.byCategory).length === 0 && (
-                            <p className="text-lg text-muted-foreground">No data available</p>
+                            <p className="text-sm text-muted-foreground">No categorized payments recorded.</p>
                         )}
                     </div>
                 </CardContent>

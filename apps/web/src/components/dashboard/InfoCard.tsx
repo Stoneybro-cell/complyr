@@ -42,12 +42,7 @@ export function InfoCards({
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            {singleCount > 0 ? "Transfers processed" : "No activity this month"}
-          </div>
-          <div className="text-muted-foreground">
-            single transfers to specific addresses
-          </div>
+          <div className="text-muted-foreground">One-off corporate payments</div>
         </CardFooter>
       </Card>
       <Card className="@container/card">
@@ -63,12 +58,7 @@ export function InfoCards({
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            {batchCount > 0 ? "Bulk operations executed" : "No activity this month"}
-          </div>
-          <div className="text-muted-foreground">
-            batch transfers to multiple addresses
-          </div>
+          <div className="text-muted-foreground">Multi-destination payouts</div>
         </CardFooter>
       </Card>
       <Card className="@container/card">
@@ -84,10 +74,7 @@ export function InfoCards({
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            {subscriptionCount > 0 ? "Recurring plans running" : "No activity this month"}
-          </div>
-          <div className="text-muted-foreground">Automatic Recurring payments to one Address</div>
+          <div className="text-muted-foreground">Recurring disbursements</div>
         </CardFooter>
       </Card>
       <Card className="@container/card">
@@ -103,10 +90,7 @@ export function InfoCards({
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            {payrollCount > 0 ? "Distribution schedules active" : "No activity this month"}
-          </div>
-          <div className="text-muted-foreground">Automatic Recurring payments to multiple addresses</div>
+          <div className="text-muted-foreground">Automated distributions</div>
         </CardFooter>
       </Card>
     </div>

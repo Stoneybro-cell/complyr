@@ -1,4 +1,5 @@
 import { AuditorPortalClient } from "./AuditorPortalClient";
+import Image from "next/image";
 
 export default async function AuditorPage({
     params,
@@ -11,12 +12,12 @@ export default async function AuditorPage({
         <div className="min-h-screen bg-muted/40">
             {/* Minimal Header */}
             <header className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-10 w-full">
-                <div className="px-6 h-16 flex items-center">
-                    <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
-                        <div className="h-6 w-6 rounded-md bg-emerald-600 flex items-center justify-center">
-                            <span className="text-white text-xs">C</span>
-                        </div>
-                        Complyr <span className="font-normal text-muted-foreground text-sm ml-2 hidden sm:inline-block">/ External Auditor Portal</span>
+                <div className="px-6 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <Image src="/complyrlogo.svg" alt="Complyr" width={100} height={24} className="h-5 w-auto" />
+                        <span className="font-mono font-normal text-muted-foreground text-[10px] uppercase tracking-widest hidden sm:inline-block border-l pl-4 border-muted-foreground/20">
+                            External Auditor Portal
+                        </span>
                     </div>
                 </div>
             </header>

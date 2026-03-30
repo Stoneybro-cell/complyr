@@ -20,12 +20,7 @@ export default function Navigation() {
         </div>
       </div>
       <nav className="hidden md:flex gap-8 items-center">
-        <Link
-          href="/login"
-          className="font-inter tracking-tight font-semibold uppercase text-xs text-black dark:text-white border-b border-black dark:border-white hover:text-black dark:hover:text-white transition-colors duration-150"
-        >
-          Demo
-        </Link>
+
         <Link
           href="https://github.com/Stoneybro/complyr#readme"
           target="_blank"

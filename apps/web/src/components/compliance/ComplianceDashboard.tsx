@@ -100,10 +100,10 @@ export function ComplianceDashboard({ walletAddress, isExternalAuditor = false }
     return (
         <div className="flex flex-col gap-6 h-full">
             <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
-                <div className="flex flex-col gap-2">
-                    <h2 className="text-2xl font-bold tracking-tight">Compliance Dashboard</h2>
-                    <p className="text-muted-foreground">
-                        Monitor zero-knowledge compliance health directly from Sepolia.
+                <div className="flex flex-col gap-1">
+                    <h2 className="text-xl font-semibold tracking-tight">Compliance Governance</h2>
+                    <p className="text-sm text-muted-foreground">
+                        Manage encrypted compliance metadata attached to your payments and control who is permitted to access it.
                     </p>
                 </div>
                 
@@ -113,10 +113,10 @@ export function ComplianceDashboard({ walletAddress, isExternalAuditor = false }
                         Refresh
                     </Button>
                     <Button 
-                        variant={allDecrypted ? "secondary" : "default"} 
+                        variant={allDecrypted ? "outline" : "default"} 
                         onClick={decryptLedger} 
                         disabled={isDecrypting || recordCount === 0 || allDecrypted}
-                        className={allDecrypted ? "" : "bg-emerald-600 hover:bg-emerald-700 text-white"}
+                        className={allDecrypted ? "border-muted-foreground/30" : ""}
                     >
                         {isDecrypting ? (
                             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -125,15 +125,15 @@ export function ComplianceDashboard({ walletAddress, isExternalAuditor = false }
                         ) : (
                             <LockIcon className="h-4 w-4 mr-2" />
                         )}
-                        {allDecrypted ? "Fully Decrypted" : "Unlock Ledger via KMS"}
+                        {allDecrypted ? "Data Decrypted" : "Decrypt Compliance Data"}
                     </Button>
                 </div>
             </div>
 
-            <div className="flex items-center gap-2 px-4 py-3 bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 rounded-lg text-sm">
-                <AlertTriangle className="h-5 w-5 shrink-0" />
+            <div className="flex items-start gap-3 px-4 py-3 bg-muted/30 border text-muted-foreground rounded-lg text-xs leading-relaxed">
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                 <p>
-                    <strong>Note:</strong> We are now exclusively reading immutable records directly from the Sepolia FHE smart contract. Data is only available once LayerZero successfully relays the confirmation. Stats remain hidden until decrypted.
+                    All compliance records are cryptographically secured and permanently linked to their transactions. Metadata remains encrypted by default and can only be decrypted by authorized entities.
                 </p>
             </div>
 
@@ -146,10 +146,10 @@ export function ComplianceDashboard({ walletAddress, isExternalAuditor = false }
                 <Tabs defaultValue="overview" className="space-y-4 h-full flex flex-col">
                     <TabsList>
                         <TabsTrigger value="overview">Overview</TabsTrigger>
-                        <TabsTrigger value="reports">Tax Reports</TabsTrigger>
-                        <TabsTrigger value="audit">Audit Trail</TabsTrigger>
+                        <TabsTrigger value="reports">Reports</TabsTrigger>
+                        <TabsTrigger value="audit">Logs</TabsTrigger>
                         {!isExternalAuditor && (
-                            <TabsTrigger value="auditors">Access Control</TabsTrigger>
+                            <TabsTrigger value="auditors">Access</TabsTrigger>
                         )}
                     </TabsList>
 

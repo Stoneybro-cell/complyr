@@ -82,40 +82,46 @@ const RecipientRow = React.memo(({
                 </Button>
             )}
         </div>
-        <div className="grid grid-cols-2 gap-4 mt-2">
-            <div className="space-y-2">
-                <Select
-                    value={recipient.jurisdiction || ''}
-                    onValueChange={(value) => onUpdate(type, index, "jurisdiction", value)}
-                >
-                    <SelectTrigger className="w-full text-xs">
-                        <SelectValue placeholder="Jurisdiction" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {JURISDICTION_OPTIONS.map((j) => (
-                            <SelectItem key={j.value} value={j.value}>
-                                {j.label}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+        <div className="mt-4 pt-3 border-t border-dashed">
+            <div className="text-[10px] uppercase font-mono tracking-widest text-muted-foreground mb-3 px-1 flex items-center gap-2">
+                <span className="h-1 w-1 bg-muted-foreground rounded-full" />
+                Compliance Records
             </div>
-            <div className="space-y-2">
-                <Select
-                    value={recipient.category || ''}
-                    onValueChange={(value) => onUpdate(type, index, "category", value)}
-                >
-                    <SelectTrigger className="w-full text-xs">
-                        <SelectValue placeholder="Category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {CATEGORY_OPTIONS.map((c) => (
-                            <SelectItem key={c.value} value={c.value}>
-                                {c.label}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+            <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                    <Select
+                        value={recipient.jurisdiction || ''}
+                        onValueChange={(value) => onUpdate(type, index, "jurisdiction", value)}
+                    >
+                        <SelectTrigger className="w-full h-8 text-xs bg-muted/30">
+                            <SelectValue placeholder="Recipient Jurisdiction" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {JURISDICTION_OPTIONS.map((j) => (
+                                <SelectItem key={j.value} value={j.value}>
+                                    {j.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="space-y-1">
+                    <Select
+                        value={recipient.category || ''}
+                        onValueChange={(value) => onUpdate(type, index, "category", value)}
+                    >
+                        <SelectTrigger className="w-full h-8 text-xs bg-muted/30">
+                            <SelectValue placeholder="Payment Category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {CATEGORY_OPTIONS.map((c) => (
+                                <SelectItem key={c.value} value={c.value}>
+                                    {c.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
         </div>
         {/* Show contact name if loaded from contact */}
@@ -151,8 +157,8 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
     // Recurring payment state
     const [recurringName, setRecurringName] = useState("");
     const [recurringRecipients, setRecurringRecipients] = useState<RecipientData[]>([{ address: "", amount: "" }]);
-    const [recurringInterval, setRecurringInterval] = useState("86400"); // daily default
-    const [recurringDuration, setRecurringDuration] = useState("");
+    const [recurringInterval, setRecurringInterval] = useState("60"); // 1 min default for demo
+    const [recurringDuration, setRecurringDuration] = useState("300"); // 5 min default for demo
     const [recurringStartDate, setRecurringStartDate] = useState("");
     const [isProcessing, setIsProcessing] = useState(false);
     const [transactionStatus, setTransactionStatus] = useState<string>("");
@@ -372,9 +378,9 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
             </SelectTrigger>
             <SelectContent>
                 {contacts.length === 0 ? (
-                    <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                        No contacts saved yet
-                    </div>
+                    <SelectItem value="empty" disabled className="text-sm text-foreground py-3 max-w-[250px] whitespace-normal pointer-events-none data-[disabled]:opacity-100">
+                        No contacts found. Use the sidebar to add a contact and automate compliance data.
+                    </SelectItem>
                 ) : (
                     contacts.map((contact) => (
                         <SelectItem key={contact.id} value={contact.id}>
@@ -402,9 +408,9 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
         <div className="max-w-2xl mx-auto py-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Manual Payment Form</CardTitle>
+                    <CardTitle>New Transfer</CardTitle>
                     <CardDescription>
-                        Create once-off or structured payments. Load recipients from saved contacts to auto-fill compliance requirements.
+                        Initiate a secure compliant transfer. Select saved contacts to automatically append encrypted compliance data.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -451,44 +457,50 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
                                             onChange={(e) => setSingleRecipient({ ...singleRecipient, amount: e.target.value })}
                                         />
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4 pt-2 border-t mt-2">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="single-jurisdiction" className="text-xs">Jurisdiction</Label>
-                                            <Select
-                                                value={singleRecipient.jurisdiction || ''}
-                                                onValueChange={(value) => setSingleRecipient({ ...singleRecipient, jurisdiction: value })}
-                                            >
-                                                <SelectTrigger id="single-jurisdiction" className="text-xs">
-                                                    <SelectValue placeholder="Select..." />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {JURISDICTION_OPTIONS.map((j) => (
-                                                        <SelectItem key={j.value} value={j.value}>
-                                                            {j.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                        <div className="mt-4 pt-3 border-t border-dashed">
+                                            <div className="text-[10px] uppercase font-mono tracking-widest text-muted-foreground mb-3 px-1 flex items-center gap-2">
+                                                <span className="h-1 w-1 bg-muted-foreground rounded-full" />
+                                                Compliance Records
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div className="space-y-1">
+                                                    <Label htmlFor="single-jurisdiction" className="text-[10px] text-muted-foreground px-1 uppercase">Recipient Jurisdiction</Label>
+                                                    <Select
+                                                        value={singleRecipient.jurisdiction || ''}
+                                                        onValueChange={(value) => setSingleRecipient({ ...singleRecipient, jurisdiction: value })}
+                                                    >
+                                                        <SelectTrigger id="single-jurisdiction" className="w-full h-8 text-xs bg-muted/30">
+                                                            <SelectValue placeholder="Select..." />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {JURISDICTION_OPTIONS.map((j) => (
+                                                                <SelectItem key={j.value} value={j.value}>
+                                                                    {j.label}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <Label htmlFor="single-category" className="text-[10px] text-muted-foreground px-1 uppercase">Payment Category</Label>
+                                                    <Select
+                                                        value={singleRecipient.category || ''}
+                                                        onValueChange={(value) => setSingleRecipient({ ...singleRecipient, category: value })}
+                                                    >
+                                                        <SelectTrigger id="single-category" className="w-full h-8 text-xs bg-muted/30">
+                                                            <SelectValue placeholder="Select..." />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {CATEGORY_OPTIONS.map((c) => (
+                                                                <SelectItem key={c.value} value={c.value}>
+                                                                    {c.label}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="single-category" className="text-xs">Category</Label>
-                                            <Select
-                                                value={singleRecipient.category || ''}
-                                                onValueChange={(value) => setSingleRecipient({ ...singleRecipient, category: value })}
-                                            >
-                                                <SelectTrigger id="single-category" className="text-xs">
-                                                    <SelectValue placeholder="Select..." />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {CATEGORY_OPTIONS.map((c) => (
-                                                        <SelectItem key={c.value} value={c.value}>
-                                                            {c.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    </div>
                                     {/* Show contact name if loaded from contact */}
                                     {(singleRecipient.contactName) && (
                                         <div className="flex flex-wrap gap-1 text-xs pt-2">
@@ -508,7 +520,7 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
                                     <div className="flex-1">
                                         <ContactSelector
                                             onSelect={(id) => loadContactForList(id, "batch")}
-                                            label="Add from Contact"
+                                            label="Select Contact"
                                         />
                                     </div>
                                     <Button
@@ -516,12 +528,9 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
                                         variant="outline"
                                         onClick={() => addRecipient("batch")}
                                     >
-                                        <Plus className="h-4 w-4 mr-2" /> Add Manual
+                                        <Plus className="h-4 w-4 mr-2" /> New Entry
                                     </Button>
                                 </div>
-                                <p className="text-xs text-muted-foreground">
-                                    Note: Manual entries bypass contact compliance data. Use contacts for auto-compliance.
-                                </p>
 
                                 <Label>Recipients</Label>
                                 <div className="space-y-2">
@@ -569,7 +578,7 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
                                     <div className="flex-1">
                                         <ContactSelector
                                             onSelect={(id) => loadContactForList(id, "recurring")}
-                                            label="Add from Contact"
+                                            label="Select Contact"
                                         />
                                     </div>
                                     <Button
@@ -577,12 +586,9 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
                                         variant="outline"
                                         onClick={() => addRecipient("recurring")}
                                     >
-                                        <Plus className="h-4 w-4 mr-2" /> Add Manual
+                                        <Plus className="h-4 w-4 mr-2" /> New Entry
                                     </Button>
                                 </div>
-                                <p className="text-xs text-muted-foreground">
-                                    Note: Manual entries bypass contact compliance data. Use contacts for auto-compliance.
-                                </p>
 
 
                                 <Label>Recipients</Label>
@@ -608,7 +614,7 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="60">Every Minute (testing)</SelectItem>
+                                                <SelectItem value="60">Every Minute (demo)</SelectItem>
                                                 <SelectItem value="3600">Hourly</SelectItem>
                                                 <SelectItem value="86400">Daily</SelectItem>
                                                 <SelectItem value="604800">Weekly</SelectItem>
@@ -623,7 +629,7 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
                                                 <SelectValue placeholder="Select duration" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="300">5 Minutes (testing)</SelectItem>
+                                                <SelectItem value="300">5 Minutes (demo)</SelectItem>
                                                 <SelectItem value="3600">1 Hour</SelectItem>
                                                 <SelectItem value="86400">1 Day</SelectItem>
                                                 <SelectItem value="604800">1 Week</SelectItem>
@@ -641,18 +647,9 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
                             </div>
                         )}
 
-                        {/* Global Settings */}
-                        <div className="border-t pt-4">
-                            <div className="flex items-center justify-between mb-4">
-                                <Label className="text-base font-semibold">Additional Details</Label>
-                                {complianceFromContact.hasAny && (
-                                    <span className="text-xs px-2 py-1 bg-green-100 text-green-800 rounded">
-                                        ✓ Using contact compliance data
-                                    </span>
-                                )}
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                                Make sure to select "None" for Category or Jurisdiction if they do not apply. Selecting a contact will pull their pre-configured compliance settings.
+                        <div className="pt-2 pb-1 border-t mt-4">
+                            <p className="text-[10px] text-muted-foreground leading-relaxed text-left opacity-70">
+                                All compliance metadata attached to this transfer is encrypted end-to-end and is never exposed on the blockchain.
                             </p>
                         </div>
 

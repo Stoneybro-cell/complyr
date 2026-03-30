@@ -1,73 +1,173 @@
 "use client";
 
-import { usePrivy, useWallets } from "@privy-io/react-auth";
+import Image from "next/image";
+import { useState, useCallback, useEffect } from "react";
+import { createPublicClient, http } from "viem";
+import { sepolia } from "viem/chains";
+import { ComplianceRegistryABI } from "@/lib/abi/ComplianceRegistryABI";
 import { ComplianceDashboard } from "@/components/compliance/ComplianceDashboard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShieldCheck, LogIn, Lock, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, LogIn, Lock, CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+
+const REGISTRY_ADDRESS = "0x231Fcd3ae69f723B3AeFfe7B9B876Bb37C4Db4D6" as const;
 
 export function AuditorPortalClient({ proxyAccount }: { proxyAccount: string }) {
-    const { login, authenticated, ready, logout } = usePrivy();
-    const { wallets } = useWallets();
+    const [activeAddress, setActiveAddress] = useState<string | null>(null);
+    const [isConnecting, setIsConnecting] = useState(false);
+    const [auditors, setAuditors] = useState<string[]>([]);
+    const [isLoadingAuditors, setIsLoadingAuditors] = useState(true);
 
-    const activeWallet = wallets.find((w) => w.walletClientType === "privy") || wallets[0];
+    const fetchAuditors = useCallback(async () => {
+        setIsLoadingAuditors(true);
+        try {
+            const publicClient = createPublicClient({
+                chain: sepolia,
+                transport: http("https://ethereum-sepolia-rpc.publicnode.com"),
+            });
+
+            const current = await publicClient.readContract({
+                address: REGISTRY_ADDRESS,
+                abi: ComplianceRegistryABI,
+                functionName: "getAuditors",
+                args: [proxyAccount as `0x${string}`],
+            }) as string[];
+            
+            setAuditors(current.map(a => a.toLowerCase()));
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsLoadingAuditors(false);
+        }
+    }, [proxyAccount]);
+
+    useEffect(() => {
+        fetchAuditors();
+        
+        // Check if already connected via window.ethereum
+        const checkConnection = async () => {
+            if (typeof window !== "undefined" && (window as any).ethereum) {
+                try {
+                    const accounts = await (window as any).ethereum.request({ method: 'eth_accounts' });
+                    if (accounts.length > 0) {
+                        setActiveAddress(accounts[0]);
+                    }
+                } catch (e) {
+                    console.error("Eth_accounts failed", e);
+                }
+            }
+        };
+        checkConnection();
+    }, [fetchAuditors]);
+
+    const connectWallet = async () => {
+        if (typeof window === "undefined" || !(window as any).ethereum) {
+            toast.error("No Web3 wallet found. Please install MetaMask or another extension.");
+            return;
+        }
+        setIsConnecting(true);
+        try {
+            const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
+            if (accounts.length > 0) {
+                setActiveAddress(accounts[0]);
+            }
+        } catch (e: any) {
+            toast.error(e.message || "Failed to connect wallet.");
+        } finally {
+            setIsConnecting(false);
+        }
+    };
+
+    const logout = () => {
+        setActiveAddress(null);
+    };
+
+    const isAuthorizedAuditor = activeAddress && auditors.includes(activeAddress.toLowerCase());
 
     return (
         <div className="flex flex-col gap-6">
-            {!authenticated ? (
+            {isLoadingAuditors ? (
+                <div className="flex flex-col items-center justify-center py-20 text-muted-foreground animate-pulse">
+                     <Loader2 className="h-8 w-8 animate-spin mb-4" />
+                     <p className="font-mono text-xs uppercase tracking-widest">Verifying access ledger...</p>
+                </div>
+            ) : !activeAddress ? (
                 <div className="flex flex-col items-center justify-center py-20 animate-in fade-in slide-in-from-bottom-6 duration-500">
-                    <Card className="max-w-md w-full border-muted/50 shadow-xl overflow-hidden">
-                        <div className="h-2 w-full bg-emerald-500" />
-                        <CardHeader className="text-center pb-2">
-                            <div className="mx-auto bg-emerald-100 dark:bg-emerald-900/30 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-                                <ShieldCheck className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+                    <Card className="max-w-md w-full border border-muted-foreground/20 shadow-none overflow-hidden rounded-none">
+                        <div className="h-1 w-full bg-foreground" />
+                        <CardHeader className="text-center pb-4">
+                            <div className="mx-auto w-12 h-12 flex items-center justify-center mb-4">
+                                <Image src="/complyrlogo.svg" alt="Complyr" width={40} height={40} className="h-10 w-auto opacity-80" />
                             </div>
-                            <CardTitle className="text-2xl">Zama FHE Encrypted Ledger</CardTitle>
-                            <CardDescription className="text-base mt-2">
-                                You have been invited to review the confidential compliance history for Entity ID <span className="font-mono bg-muted px-1.5 py-0.5 rounded text-xs select-all text-primary">{proxyAccount}</span>
+                            <CardTitle className="text-xl font-bold uppercase tracking-tight">Access Invite</CardTitle>
+                            <CardDescription className="text-sm mt-3">
+                                You have been authorized to review the compliance records for:
+                                <div className="font-mono bg-muted px-2 py-1 rounded text-xs mt-2 select-all text-foreground border border-muted-foreground/10">{proxyAccount}</div>
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6 flex flex-col items-center pb-8">
-                            <div className="bg-muted/50 rounded-lg p-4 text-sm text-center flex flex-col gap-2 w-full">
-                                <div className="flex items-center gap-2 justify-center text-muted-foreground">
-                                    <Lock className="h-4 w-4" /> Fully Homomorphic Encryption
+                            <div className="bg-muted px-4 py-3 rounded text-[10px] text-center flex flex-col gap-2 w-full font-mono uppercase tracking-widest border border-muted-foreground/10 opacity-70">
+                                <div className="flex items-center gap-2 justify-center">
+                                    <Lock className="h-3 w-3" /> Encrypted Audit Trail
                                 </div>
-                                <p>To view these records, connect your explicitly authorized auditor wallet to decrypt the data.</p>
                             </div>
-                            <Button size="lg" className="w-full text-lg h-12" onClick={login} disabled={!ready}>
-                                <LogIn className="h-5 w-5 mr-2" /> Connect Wallet
+                            <p className="text-xs text-muted-foreground text-center px-4">Connect a delegated key to decrypt and verify the compliance manifest.</p>
+                            <Button size="lg" className="w-full text-sm h-11 rounded-none uppercase font-mono tracking-widest" onClick={connectWallet} disabled={isConnecting}>
+                                {isConnecting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <LogIn className="h-4 w-4 mr-2" />} Connect Key
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </div>
+            ) : !isAuthorizedAuditor ? (
+                <div className="flex flex-col items-center justify-center py-20 animate-in fade-in slide-in-from-bottom-6 duration-500">
+                    <Card className="max-w-md w-full border border-destructive/20 shadow-none overflow-hidden rounded-none">
+                        <div className="h-1 w-full bg-destructive" />
+                        <CardHeader className="text-center pb-4">
+                            <div className="mx-auto w-12 h-12 flex items-center justify-center mb-4 text-destructive">
+                                <XCircle className="h-8 w-8" />
+                            </div>
+                            <CardTitle className="text-xl font-bold uppercase tracking-tight text-destructive">Access Denied</CardTitle>
+                            <CardDescription className="text-sm mt-3">
+                                You are not authorized to review the compliance records for entity:
+                                <div className="font-mono bg-muted px-2 py-1 rounded text-xs mt-2 select-all text-foreground border border-muted-foreground/10">{proxyAccount}</div>
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6 flex flex-col items-center pb-8">
+                            <p className="text-xs text-muted-foreground text-center px-4">Your current key (<span className="font-mono text-foreground font-semibold">{activeAddress?.slice(0, 8)}...{activeAddress?.slice(-6)}</span>) has not been granted FHE decryption privileges by the entity owner.</p>
+                            <Button size="lg" variant="outline" className="w-full text-sm h-11 rounded-none uppercase font-mono tracking-widest border-destructive/50 hover:bg-destructive/10 text-destructive" onClick={logout}>
+                                Close Session
                             </Button>
                         </CardContent>
                     </Card>
                 </div>
             ) : (
                 <div className="flex flex-col gap-6 animate-in fade-in">
-                    <Card className="bg-emerald-500/10 border-emerald-500/20 shadow-none">
+                    <Card className="bg-muted/30 border-muted-foreground/20 rounded-none shadow-none">
                         <CardContent className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div className="flex items-start gap-4">
-                                <div className="bg-emerald-500/20 p-2 rounded-full mt-0.5">
-                                    <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                                <div className="bg-foreground/5 p-2 rounded mt-0.5 border border-foreground/10">
+                                    <ShieldCheck className="h-5 w-5 text-foreground" />
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-emerald-900 dark:text-emerald-100 flex items-center gap-2">
-                                        Authorized Auditor Session
-                                        <Badge variant="outline" className="border-emerald-500/30 text-emerald-600 dark:text-emerald-400">Live</Badge>
+                                    <h3 className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                                        Auditor Session Active
+                                        <Badge variant="outline" className="text-[10px] border-foreground/20 font-mono tracking-widest">[ LIVE ]</Badge>
                                     </h3>
-                                    <p className="text-sm mt-1 text-emerald-800/80 dark:text-emerald-200/80 max-w-2xl leading-relaxed">
-                                        You are viewing the immutable compliance ledger for entity <span className="font-mono bg-emerald-500/20 px-1 py-0.5 rounded text-emerald-900 dark:text-emerald-100">{proxyAccount}</span>. 
-                                        Your connected external key (<span className="font-mono text-emerald-900 dark:text-emerald-100">{activeWallet?.address.slice(0, 6)}...{activeWallet?.address.slice(-4)}</span>) has been delegated FHE decryption permissions.
+                                    <p className="text-xs mt-1 text-muted-foreground max-w-2xl leading-relaxed">
+                                        You are reviewing the immutable manifest for entity <span className="font-mono bg-muted/50 px-1 py-0.5 rounded border border-muted-foreground/10 text-foreground">{proxyAccount}</span>. 
+                                        Your delegated address (<span className="font-mono text-foreground font-semibold">{activeAddress?.slice(0, 8)}...{activeAddress?.slice(-6)}</span>) has been granted state-wide decryption privileges.
                                     </p>
                                 </div>
                             </div>
-                            <Button variant="outline" size="sm" onClick={logout} className="shrink-0 border-emerald-500/30 hover:bg-emerald-500/10">
-                                Log out
+                            <Button variant="outline" size="sm" onClick={logout} className="shrink-0 border-muted-foreground/30 text-xs h-8">
+                                Close Session
                             </Button>
                         </CardContent>
                     </Card>
 
-                    <div className="bg-background rounded-xl border shadow-sm p-4 md:p-6 min-h-[70vh]">
-                        {/* We reuse the exact same dashboard used internally, locked exclusively to the targeted address */}
+                    <div className="bg-background rounded-none border-x border-b p-4 md:p-8 min-h-[80vh]">
                         <ComplianceDashboard walletAddress={proxyAccount} isExternalAuditor={true} />
                     </div>
                 </div>

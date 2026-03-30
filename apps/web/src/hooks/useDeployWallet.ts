@@ -92,7 +92,7 @@ export function useDeployWallet() {
       localStorage.setItem("wallet-deployed", address);
 
       queryClient.invalidateQueries({ queryKey: ["deploymentStatus", owner?.address] });
-      toast.success("Wallet successfully deployed & registered cross-chain!");
+      toast.success("Account activated");
       
       // Short delay so users see the green checkmark before redirecting
       setTimeout(() => {
@@ -107,9 +107,7 @@ export function useDeployWallet() {
       try {
         await getClient({ timeoutMs: 3000 });
 
-        const retry = window.confirm(
-          "Deployment failed but connection appears restored. Retry deployment now?"
-        );
+        const retry = window.confirm("Activation failed. Retry now?");
         if (retry) {
 
           router.refresh();
@@ -120,13 +118,11 @@ export function useDeployWallet() {
       }
 
 
-      const refresh = window.confirm(
-        "Wallet deployment failed. Would you like to refresh the page and try again?"
-      );
+      const refresh = window.confirm("Activation failed. Refresh page to try again?");
       if (refresh) {
         router.refresh();
       } else {
-        toast.error("Failed to deploy wallet. Try reconnecting your wallet and retry.");
+        toast.error("Activation failed");
       }
     },
   });

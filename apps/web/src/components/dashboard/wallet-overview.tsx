@@ -77,8 +77,8 @@ export function WalletOverview({ walletAddress }: WalletOverviewProps) {
     return (
         <>
             <div className="@container/main flex flex-col gap-2  ">
-                <div className="flex justify-between items-center">
-                    <div className="text-lg font-semibold ml-2 md:ml-4">Balances:</div>
+                <div className="flex justify-between items-center px-1 mb-1">
+                    <div className="text-[10px] uppercase font-mono tracking-widest text-muted-foreground">Capital Allocation</div>
                     <Button
                         variant="ghost"
                         size="icon"
@@ -94,8 +94,8 @@ export function WalletOverview({ walletAddress }: WalletOverviewProps) {
                     isLoading={walletIsLoading}
                 />
             </div>
-            <div className="@container/main flex flex-col gap-2  ">
-                <div className="text-lg font-semibold ml-2 md:ml-4">Payment Information:</div>
+            <div className="@container/main flex flex-col gap-2 mt-4">
+                <div className="text-[10px] uppercase font-mono tracking-widest text-muted-foreground px-1 mb-1">Asset Activity</div>
                 <InfoCards
                     singleCount={stats.single}
                     batchCount={stats.batch}

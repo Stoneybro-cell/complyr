@@ -73,8 +73,8 @@ export default function PaymentTable({ walletAddress }: PaymentTableProps) {
         if (items.length === 0) {
             return (
                 <TableRow>
-                    <TableCell colSpan={9} className="h-24 text-center">
-                        No active {activeTab} found.
+                    <TableCell colSpan={9} className="h-24 text-center font-mono text-xs uppercase tracking-widest text-muted-foreground">
+                        No active {activeTab} instances.
                     </TableCell>
                 </TableRow>
             );
@@ -119,7 +119,7 @@ export default function PaymentTable({ walletAddress }: PaymentTableProps) {
                         )}
                     </TableCell>
                     <TableCell className="font-medium">
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 capitalize">
+                        <span className="inline-flex items-center px-2 py-0.5 border border-foreground rounded text-[10px] font-mono tracking-widest uppercase">
                             {tx.status}
                         </span>
                     </TableCell>
@@ -172,15 +172,15 @@ export default function PaymentTable({ walletAddress }: PaymentTableProps) {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Total Amount</TableHead>
-                            <TableHead>Recipient</TableHead>
+                            <TableHead>Reference</TableHead>
+                            <TableHead>Volume</TableHead>
+                            <TableHead>Destinations</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead>Hash</TableHead>
-                            <TableHead>Created</TableHead>
-                            <TableHead>Duration</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Term</TableHead>
                             <TableHead>Frequency</TableHead>
-                            <TableHead>Actions</TableHead>
+                            <TableHead>Action</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>

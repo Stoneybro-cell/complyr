@@ -41,7 +41,7 @@ export function BalanceCards({ availableToken = "0", committedToken = "0", isLoa
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4  *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs  @xl/main:grid-cols-2 @5xl/main:grid-cols-3">
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Total Balance</CardDescription>
+          <CardDescription>Total Assets</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             {isLoading ? <Skeleton className="h-8 w-24" /> : `${formatBalance(safeTotal)} FLOW`}
           </CardTitle>
@@ -52,17 +52,12 @@ export function BalanceCards({ availableToken = "0", committedToken = "0", isLoa
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            {parseFloat(safeTotal) > 0 ? "Balance is active" : "No activity this month"}
-          </div>
-          <div className="text-muted-foreground">
-            sum of committed balance and free balance
-          </div>
+          <div className="text-muted-foreground">Combined balance</div>
         </CardFooter>
       </Card>
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Reserved Balance</CardDescription>
+          <CardDescription>Scheduled</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             {isLoading ? <Skeleton className="h-8 w-24" /> : `${formatBalance(committedToken)} FLOW`}
           </CardTitle>
@@ -73,17 +68,12 @@ export function BalanceCards({ availableToken = "0", committedToken = "0", isLoa
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            {parseFloat(committedToken) > 0 ? "Funds currently reserved" : "No activity this month"}
-          </div>
-          <div className="text-muted-foreground">
-            Value locked in payrolls and subscriptions
-          </div>
+          <div className="text-muted-foreground">Locked in payments</div>
         </CardFooter>
       </Card>
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Available Balance</CardDescription>
+          <CardDescription>Spendable</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             {isLoading ? <Skeleton className="h-8 w-24" /> : `${formatBalance(availableToken)} FLOW`}
           </CardTitle>
@@ -94,10 +84,7 @@ export function BalanceCards({ availableToken = "0", committedToken = "0", isLoa
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            {parseFloat(availableToken) > 0 ? "Liquidity available" : "No activity this month"}
-          </div>
-          <div className="text-muted-foreground">Value available for use and withdrawal</div>
+          <div className="text-muted-foreground">Ready to send</div>
         </CardFooter>
       </Card>
 

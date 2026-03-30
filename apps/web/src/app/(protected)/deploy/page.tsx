@@ -22,11 +22,9 @@ function Page() {
           <div className=' text-3xl font-semibold text-center'>
             Activate your Complyr account
           </div>
-          <div className=' flex flex-col'>
-            <div className="">Complyr is built on ERC-4337 smart accounts.</div>
-            <div className=""> Your demo account will be funded with 100 flow tokens for testing purposes.</div>
-            <div className="">All transactions are gasless</div>
-
+          <div className='flex flex-col text-sm text-muted-foreground gap-1'>
+            <div>Your enterprise account is ready to activate.</div>
+            <div>Demo accounts are pre-funded. All platform transactions are gasless.</div>
           </div>
           <Label className='hover:bg-muted/50 dark:hover:bg-muted/30 flex items-start gap-3 rounded-lg border p-3 has-[[aria-checked=true]]:border-black has-[[aria-checked=true]]:bg-muted dark:has-[[aria-checked=true]]:border-accent dark:has-[[aria-checked=true]]:bg-muted/50'>
             <Checkbox
@@ -54,10 +52,10 @@ function Page() {
             disabled={!checked || isPending}
           >
             {isPending && <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />}
-            {bridgeStatus === "flow_tx_pending" && "Deploying Smart Wallet..."}
-            {bridgeStatus === "lz_bridging" && "Registering on Zama..."}
-            {bridgeStatus === "zama_confirmed" && "Success! Redirecting..."}
-            {bridgeStatus === "idle" && "Activate Account"}
+            {bridgeStatus === "flow_tx_pending" && "Activating..."}
+            {bridgeStatus === "lz_bridging" && "Securing..."}
+            {bridgeStatus === "zama_confirmed" && "Success"}
+            {bridgeStatus === "idle" && "Activate account"}
           </Button>
 
         </div>

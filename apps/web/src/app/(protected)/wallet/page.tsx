@@ -52,8 +52,8 @@ export default function Page() {
           <div className="h-full w-full">
             <Tabs defaultValue="form" className="h-full w-full">
               <TabsList className="flex justify-center mx-auto">
-                <TabsTrigger value="form">Form</TabsTrigger>
-                <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+                <TabsTrigger value="form">Payments</TabsTrigger>
+                <TabsTrigger value="dashboard">Treasury</TabsTrigger>
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
               </TabsList>
               <TabsContent value="chat">

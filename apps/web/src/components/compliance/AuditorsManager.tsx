@@ -212,30 +212,28 @@ export function AuditorsManager({ proxyAccount }: { proxyAccount?: string }) {
         <Card className="max-w-3xl">
             <CardHeader>
                 <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="text-xl flex items-center gap-2 font-semibold">
                         <ShieldCheck className="h-5 w-5" />
-                        External Auditors Access
+                        Third-Party Access
                     </CardTitle>
                     <Button 
                         variant="outline" 
                         size="sm" 
                         onClick={handleCopyLink}
                         disabled={!proxyAccount}
-                        className="gap-2"
+                        className="gap-2 border-muted-foreground/20 text-xs h-8"
                     >
-                        {isCopying ? <Check className="h-4 w-4 text-emerald-500" /> : <Share2 className="h-4 w-4" />}
-                        {isCopying ? "Copied!" : "Share Portal Link"}
+                        {isCopying ? <Check className="h-3.5 w-3.5" /> : <Share2 className="h-3.5 w-3.5" />}
+                        {isCopying ? "Link Copied" : "Share Access Link"}
                     </Button>
                 </div>
-                <CardDescription>
-                    Manage the third-party auditors who can view your encrypted compliance records.
-                    Zama's Fully Homomorphic Encryption guarantees only authorized addresses can decrypt your ledger.
-                    Up to 3 auditors allowed.
+                <CardDescription className="text-sm leading-relaxed max-w-2xl">
+                    Authorized auditors can verify encrypted transaction records without exposing operational details on the public ledger.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="space-y-4">
-                    <h3 className="text-sm font-medium">Currently Authorized Auditors</h3>
+                    <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Authorized Auditors</h3>
                     
                     {isLoading ? (
                          <div className="py-4 flex justify-center text-muted-foreground">
@@ -244,7 +242,7 @@ export function AuditorsManager({ proxyAccount }: { proxyAccount?: string }) {
                     ) : auditors.length === 0 ? (
                         <div className="bg-muted/30 border border-dashed rounded-lg p-6 text-center text-sm text-muted-foreground flex flex-col items-center gap-2">
                             <Fingerprint className="h-8 w-8 text-muted-foreground/50" />
-                            No external auditors configured.
+                            No external Auditors have been authorized.
                         </div>
                     ) : (
                         <div className="space-y-3">
@@ -281,7 +279,7 @@ export function AuditorsManager({ proxyAccount }: { proxyAccount?: string }) {
                             className="shrink-0"
                         >
                             {isManaging ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <UserPlus className="h-4 w-4 mr-2" />}
-                            Grant Access
+                            Authorize Auditor
                         </Button>
                     </div>
                     {auditors.length >= 3 && (
@@ -289,8 +287,8 @@ export function AuditorsManager({ proxyAccount }: { proxyAccount?: string }) {
                             You have reached the maximum limit of 3 external auditors. Please remove one to add another.
                         </p>
                     )}
-                    <p className="text-xs text-muted-foreground">
-                        Adding a new auditor securely re-evaluates Zama FHE conditions and grants retroactive decryption capabilities over your entire history log to the new EOA.
+                    <p className="text-xs text-muted-foreground font-mono">
+                        Authorizing an address grants permission to decrypt and verify compliance metadata associated with this wallet.
                     </p>
                 </div>
             </CardContent>

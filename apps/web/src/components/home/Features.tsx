@@ -5,34 +5,34 @@ import { motion } from 'framer-motion';
 
 const features = [
   {
+    icon: 'schedule',
+    title: 'Payroll & Subscriptions',
+    body: 'Automated, stateful recurring payments. Manage employee salaries and subscriptions securely on-chain.',
+  },
+  {
+    icon: 'layers',
+    title: 'Batch Payouts',
+    body: 'Execute mass vendor payments in a single transaction. Highly scalable infrastructure designed to save gas.',
+  },
+  {
+    icon: 'payments',
+    title: 'Single Transfers',
+    body: 'Fast, reliable direct B2B transactions. The foundational layer for moving treasury funds efficiently.',
+  },
+  {
     icon: 'lock',
     title: 'FHE Privacy',
-    body: 'Confidential data stays private even while being verified by on-chain logic using Fully Homomorphic Encryption.',
+    body: 'Sensitive compliance data remains strictly concealed during computation utilizing Fully Homomorphic Encryption.',
   },
   {
-    icon: 'history_edu',
-    title: 'Atomic Records',
-    body: 'The payment and the proof are inseparable. Every transaction hash is cryptographically linked to its manifest.',
+    icon: 'fingerprint',
+    title: 'Account Abstraction',
+    body: 'Seamless gasless transactions and simple Web2-style social logins for frictionless enterprise onboarding.',
   },
   {
-    icon: 'dynamic_form',
-    title: 'Automated Tagging',
-    body: 'Categorize corporate expenses dynamically at the exact moment a transaction is executed.',
-  },
-  {
-    icon: 'lan',
-    title: 'Seamless Bridging',
-    body: 'Securely sync payment states between Flow EVM and Zama fhEVM without sacrificing data integrity or privacy.',
-  },
-  {
-    icon: 'query_stats',
-    title: 'Real-time Index',
-    body: 'Instant access to your transaction history via Envio, with deep filtering and institutional-grade metadata.',
-  },
-  {
-    icon: 'verified_user',
-    title: 'Zero-Trust',
-    body: 'Mathematical certainty over document validity without revealing contents using EIP-712 cryptographic signatures.',
+    icon: 'policy',
+    title: 'Auditor Portal',
+    body: 'An isolated environment for external regulators to verify compliance proofs without exposing underlying corporate data.',
   },
 ];
 

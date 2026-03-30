@@ -10,7 +10,6 @@ import { checkSufficientBalance } from "./utils";
 import { getFhevmInstance } from "@/lib/fhevm";
 
 const ZAMA_CONTRACT_ADDRESS = "0x231Fcd3ae69f723B3AeFfe7B9B876Bb37C4Db4D6";
-const RELAY_ADDRESS = "0x0D96081998fd583334fd1757645B40fdD989B267";
 
 export function useRecurringPayment(availableEthBalance?: string) {
     const { getClient } = useSmartAccountContext();
@@ -54,15 +53,19 @@ export function useRecurringPayment(availableEthBalance?: string) {
                         const handles: { categories: string[], jurisdictions: string[] } = { categories: [], jurisdictions: [] };
                         const proofs: { categories: string[], jurisdictions: string[] } = { categories: [], jurisdictions: [] };
 
+                        // The caller address for proof generation must be the smart wallet (proxy account)
+                        // NOT the keeper or another hardcoded address
+                        const callerAddress = proxyAddress;
+
                         const encryptionPromises = params.recipients.map(async (recipient, i) => {
                             const catValue = categories[i] !== undefined ? categories[i] : 0;
                             const jurValue = jurisdictions[i] !== undefined ? jurisdictions[i] : 0;
 
-                            const catInput = fhevm.createEncryptedInput(ZAMA_CONTRACT_ADDRESS, RELAY_ADDRESS);
+                            const catInput = fhevm.createEncryptedInput(ZAMA_CONTRACT_ADDRESS, callerAddress);
                             catInput.add8(catValue);
                             const catEnc = await catInput.encrypt();
 
-                            const jurInput = fhevm.createEncryptedInput(ZAMA_CONTRACT_ADDRESS, RELAY_ADDRESS);
+                            const jurInput = fhevm.createEncryptedInput(ZAMA_CONTRACT_ADDRESS, callerAddress);
                             jurInput.add8(jurValue);
                             const jurEnc = await jurInput.encrypt();
 

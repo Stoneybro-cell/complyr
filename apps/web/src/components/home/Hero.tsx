@@ -19,7 +19,7 @@ export default function Hero() {
           The compliance layer for onchain business payments.
         </h1>
         <p className="text-xl md:text-xl text-on-surface-variant max-w-3xl font-light mb-12 leading-relaxed mx-auto">
-          Complyr attaches encrypted, auditable compliance records to every payment your business makes on-chain. Bridging the gap between cryptographic settlement and corporate regulatory requirements.
+          A robust payment infrastructure for single, batch, and recurring transactions. Complyr attaches encrypted compliance records to every transaction, allowing your business to satisfy regulatory checks and external audits without exposing sensitive financial context.
         </p>
         <div className="flex flex-col sm:flex-row gap-4">
           <Link
