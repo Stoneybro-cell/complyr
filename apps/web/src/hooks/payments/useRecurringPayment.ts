@@ -125,9 +125,9 @@ export function useRecurringPayment(availableEthBalance?: string) {
                 });
 
                 // 3. Send createIntent via UserOp
-                // Manual gas limits provided because the permissionless library's
-                // internal estimation flow fails for large calldata with FHE handles.
-                // Direct bundler calls succeed — this bypasses the library's estimation.
+                // The silent revert on-chain (no revert reason logged) is heavily indicative
+                // of an Out Of Gas error inside the LayerZero bridge cross-chain call during execution.
+                // We add very generous manual gas caps to bypass bundler under-estimation.
                 statusUpdate("Signing...");
                 const txLoading = toast.loading("Indexing recurring payment...");
                 const hash = await smartAccountClient.sendUserOperation({
@@ -139,9 +139,9 @@ export function useRecurringPayment(availableEthBalance?: string) {
                             value: 0n,
                         },
                     ],
-                    callGasLimit: 800_000n,
-                    verificationGasLimit: 200_000n,
-                    preVerificationGas: 100_000n,
+                    callGasLimit: 5_000_000n,
+                    verificationGasLimit: 1_000_000n,
+                    preVerificationGas: 200_000n,
                 });
 
                 statusUpdate("Confirming...");
@@ -152,7 +152,8 @@ export function useRecurringPayment(availableEthBalance?: string) {
 
                 // Guard: if the UserOp was included but the inner call reverted, stop here
                 if (!receipt.success) {
-                    const revertMsg = receipt.reason ?? "createIntent call reverted on-chain";
+                    const txHashFailed = receipt.receipt?.transactionHash;
+                    const revertMsg = receipt.reason ?? (txHashFailed ? `Reverted on-chain. TxHash: ${txHashFailed}` : "createIntent call reverted on-chain");
                     console.error("[recurring] UserOp reverted:", revertMsg, receipt);
                     throw new Error(`Transaction reverted: ${revertMsg}`);
                 }

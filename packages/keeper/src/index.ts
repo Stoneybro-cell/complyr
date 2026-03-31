@@ -62,6 +62,20 @@ async function main() {
     console.log(`   Registry: ${REGISTRY_ADDRESS}`);
     console.log(`   RPC: ${RPC_URL}`);
 
+    // If running on Render as a Web Service, we MUST bind to a port
+    // otherwise Render will fail the health check and kill the process.
+    const port = process.env.PORT;
+    if (port) {
+        const http = await import('http');
+        const server = http.createServer((req, res) => {
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end('Complyr Keeper is running!\\n');
+        });
+        server.listen(port, () => {
+            console.log(`🌐 Dummy Web Server listening on port ${port} for Render Health Checks`);
+        });
+    }
+
     // Poll every 30 seconds
     setInterval(checkAndExecute, 30000);
 

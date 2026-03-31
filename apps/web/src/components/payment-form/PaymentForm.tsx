@@ -671,7 +671,7 @@ export function PaymentForm({ walletAddress, availableBalance }: PaymentFormProp
                             {isProcessing ? (
                                 <>
                                     {transactionStatus !== "Encrypting..." && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    {transactionStatus === "Encrypting..." ? "Encrypting locally (this may take a moment)..." : (transactionStatus || "Processing...")}
+                                    {transactionStatus === "Encrypting..." ? "Encrypting (this may take a moment)..." : (transactionStatus || "Processing...")}
                                 </>
                             ) : (
                                 transactionStatus === "Complete" ? "Payment Successful" :
