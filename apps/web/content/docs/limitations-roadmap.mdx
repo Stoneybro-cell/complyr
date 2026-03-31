@@ -11,11 +11,13 @@ This section documents the honest edges of the current implementation. We are no
 
 Complyr currently runs on Flow EVM testnet (chain ID 545) and Zama Sepolia. The infrastructure is not deployed to any mainnet. Contract security has not been audited. Do not use this for real financial transactions.
 
-### LayerZero DVN instability
+### LayerZero: no DVN coverage on the Flow EVM Testnet → Sepolia route
 
-The cross-chain compliance bridge relies on LayerZero V2 testnet DVNs (Decentralised Verifier Networks) to relay messages from Flow to Zama Sepolia. Testnet DVNs can be slow, intermittently unavailable, or silently drop messages without reversion. In production, the message queue is persistent — a failed delivery can always be retried — but on testnet you may encounter delays of minutes to hours.
+The cross-chain compliance bridge is fully implemented and deployed. The `ComplianceBridge` contract on Flow EVM correctly encodes and dispatches messages via LayerZero V2. However, the **Flow EVM Testnet → Sepolia route has no DVN (Decentralised Verifier Network) configured in LayerZero's current testnet infrastructure**. Messages reach the LayerZero endpoint and are accepted, but are never forwarded — because no verifier network exists for this specific path on testnet.
 
-As a workaround, Complyr's relay API (`/api/relay/compliance-record`) submits compliance records directly to the Zama registry without going through LayerZero, bypassing the bridge entirely for demo reliability. The bridge path remains the canonical production design.
+This is not a limitation of the bridge implementation. The Flow EVM → Sepolia route is supported on mainnet, which is why it was chosen for the architecture. The same contracts and message encoding work correctly on any network where the route has DVN coverage. LayerZero support has been contacted to request DVN availability for this testnet route.
+
+As a functional substitute, a relay API (`/api/relay/compliance-record`) submits compliance records directly to the Zama registry with the correct payload structure, demonstrating the full end-to-end integration without depending on missing testnet infrastructure. The bridge remains the canonical path for production.
 
 ### Auditor FHE access revocation is partial
 

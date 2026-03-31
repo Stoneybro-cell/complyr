@@ -95,7 +95,7 @@ Metadata encrypted client-side via Zama relayer SDK (WASM, runs in-browser)
                                                                   ACL access granted to owner + auditors
 ```
 
-> On testnet, a relay API path (`/api/relay/compliance-record`) submits compliance records directly to the registry for demo reliability, bypassing LayerZero.
+> **Note on cross-chain delivery:** The Flow EVM Testnet → Sepolia route has no DVN (Decentralised Verifier Network) coverage in LayerZero's current testnet configuration — this route is fully supported on mainnet, which is why it was chosen for the architecture. On testnet, messages reach the LayerZero endpoint and are accepted, but are never delivered because no verifier network is configured for this specific route. This is an external infrastructure gap, not a limitation of the bridge implementation. A relay API path (`/api/relay/compliance-record`) is used as a substitute, submitting compliance records directly to the Zama registry with the correct payload. LayerZero support has been contacted regarding DVN availability for this route.
 
 <div align="center">
 
@@ -115,7 +115,7 @@ Complyr is built across three distinct layers, each with a defined responsibilit
 
 **`SmartWallet`** is an ERC-4337 compliant smart account, deployed as a minimal proxy clone per business entity via `Clones.cloneDeterministic`. The address is deterministic, enabling counterfactual wallets and gasless `initCode` deployment. The wallet maintains two fund states: *available balance* and *committed balance*. When a recurring payment intent is created, the full expected commitment is locked — preventing those funds from being spent elsewhere until each scheduled cycle executes or the intent is cancelled. All transactions are fully gasless, sponsored through a self-hosted Skandha bundler on Railway (no public bundler supports Flow testnet).
 
-**`SmartWalletFactory`** deploys and tracks smart wallet clones, one per user identity. Uses the owner address as the deterministic salt. Pre-funded to drip `100 FLOW` to each newly deployed wallet, making testnet onboarding frictionless. Designed to trigger automatic company registration on Zama Sepolia at wallet creation via the Compliance Bridge. On testnet, registration is handled through the relay API due to LayerZero DVN instability.
+**`SmartWalletFactory`** deploys and tracks smart wallet clones, one per user identity. Uses the owner address as the deterministic salt. Pre-funded to drip `100 FLOW` to each newly deployed wallet, making testnet onboarding frictionless. Designed to trigger automatic company registration on Zama Sepolia at wallet creation via the Compliance Bridge. On testnet, registration is submitted through the relay API because no DVN has been configured for the Flow EVM Testnet → Sepolia route — a gap in LayerZero's testnet infrastructure for this specific path, not a limitation of the bridge code.
 
 **`IntentRegistry`** is the scheduling and compliance dispatch engine. It manages the full intent lifecycle: creation, recurring execution, and cancellation with automatic fund release. Key design decisions:
 

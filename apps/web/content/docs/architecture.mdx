@@ -15,7 +15,7 @@ At a high level, every Complyr payment follows a consistent sequence:
 
 **3. Payment execution on Flow EVM.** The smart wallet executes the payment. For single and batch transfers, funds move immediately. For recurring payments, the intent is registered with the on-chain scheduler and funds are locked until each payment cycle executes.
 
-**4. Cross-chain compliance dispatch.** In the production architecture, the Compliance Bridge — a LayerZero V2 OApp deployed on Flow EVM — encodes the compliance report and sends it to Zama Sepolia. For testnet reliability, a relay API can submit records directly to the registry, bypassing LayerZero.
+**4. Cross-chain compliance dispatch.** The Compliance Bridge — a LayerZero V2 OApp deployed on Flow EVM — encodes the compliance report and sends it to Zama Sepolia. On mainnet this route has full DVN coverage. On testnet, no DVN is configured for the Flow EVM → Sepolia path, so a relay API submits records directly to the registry to demonstrate the integration end-to-end.
 
 **5. Encrypted record storage on Zama.** The Compliance Receiver on Zama decodes the incoming message and calls the Compliance Registry, which validates the zero-knowledge proofs, materialises the FHE ciphertext on-chain, and grants access to the company's master wallet.
 
