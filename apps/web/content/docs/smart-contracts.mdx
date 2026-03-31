@@ -1,0 +1,92 @@
+---
+title: Smart Contracts Layer
+description: Deep dive into the Flow EVM and Zama Sepolia smart contracts.
+---
+
+## Smart Contract Layer — Flow EVM
+
+The Flow EVM layer handles payment execution and compliance metadata dispatch. It consists of four contracts.
+
+### SmartWallet
+
+The SmartWallet is an ERC-4337 compliant smart account. Each business entity deploys exactly one smart wallet, created as a minimal proxy clone via the SmartWalletFactory using `Clones.cloneDeterministic`. The deterministic address means a wallet's address is known before deployment, enabling counterfactual wallets and gasless `initCode` deployment.
+
+Key responsibilities:
+- Validates user operations via `validateUserOp` using EIP-191 message hashing
+- Executes single and batch native FLOW transfers
+- Manages committed vs. available balance to prevent double-spending on scheduled payments
+- Exposes `executeBatchIntentTransfer` — callable only by the IntentRegistry — for scheduled payment execution
+- Routes compliance reports to the ComplianceBridge via `reportCompliance`
+
+**Fund commitment model.** When a recurring payment intent is created, `increaseCommitment(totalCommitment)` is called on the wallet. The committed amount is subtracted from available balance, preventing the funds from being spent elsewhere. Each executed cycle calls `decreaseCommitment` by the cycle amount. Cancellation releases all remaining committed funds.
+
+### SmartWalletFactory
+
+The factory deploys and tracks smart wallet clones. It accepts a single `owner` address, derives a deterministic salt, and deploys the clone using OpenZeppelin's `Clones` library.
+
+For demo and testnet purposes, the factory is pre-funded and sends `100 FLOW` to each newly deployed wallet, making onboarding gasless and frictionless.
+
+The factory also triggers automatic company registration on Zama Sepolia at wallet creation time by calling `ComplianceBridge.registerAccount`. This establishes the cross-chain identity link — mapping the Flow proxy address to the owner's EOA — at the earliest possible moment.
+
+### IntentRegistry
+
+The IntentRegistry is the scheduling and compliance dispatch engine. It manages the full lifecycle of recurring payment intents.
+
+**Creating an intent.** The caller provides:
+- `name` — a human-readable label
+- `recipients[]` and `amounts[]` — matched arrays; max 10 recipients per intent
+- `duration` — total active time in seconds
+- `interval` — time between executions in seconds (minimum 30s)
+- `transactionStartTime` — Unix timestamp for first execution (0 = immediate)
+- Per-recipient FHE handles and proofs for category and jurisdiction
+
+The registry validates fund availability, calculates total commitment (`amountPerCycle × totalCycles`), locks funds via `increaseCommitment`, and dispatches a compliance report to the bridge at creation time. For recurring payments, each execution should produce a corresponding compliance record referencing the originating intent.
+
+> *Note: The current testnet implementation sends compliance data once at intent creation as an optimisation. The production design calls for per-execution compliance records linked to the originating intent identifier.*
+
+**Executing an intent.** The registry implements `checkUpkeep` and `performUpkeep`, the Chainlink Automation interface. A custom keeper script deployed on Railway polls `checkUpkeep` every 30 seconds across all registered wallets and calls `performUpkeep` when execution conditions are met. Execution is skipped (not reverted) if a recipient transfer fails, with the failed amount tracked in `intent.failedAmount` for recovery.
+
+**Cancelling an intent.** The wallet owner can cancel any active intent at any time. The remaining committed funds are released immediately.
+
+### ComplianceBridge
+
+The ComplianceBridge is a LayerZero V2 OApp that sends compliance payloads from Flow EVM to Zama Sepolia. It is self-funded: it uses its own FLOW balance to pay LayerZero fees, so callers never need to send `msg.value` when triggering compliance dispatch.
+
+Two message types are supported:
+- `MSG_REGISTER` — sent at wallet creation, maps proxy address to master EOA
+- `MSG_REPORT` — sent at intent creation, carries the full per-recipient compliance payload
+
+The bridge overrides `_payNative` to allow treasury-funded fees and implements a `_resolveOptions` helper that injects default executor gas options when callers pass empty bytes, preventing `LZ_ULN_InvalidWorkerOptions` errors.
+
+### VerifyingPaymaster
+
+The VerifyingPaymaster is an ERC-4337 paymaster that sponsors gas for all UserOperations, making every Complyr transaction gasless for the end user.
+
+In the production design, the paymaster validates an off-chain signature from a backend signer before authorising sponsorship. The signature covers the sender address, nonce, validity window, and chain context to prevent replay attacks. The paymaster maintains per-sender nonces and supports configurable validity windows (`validUntil`, `validAfter`).
+
+In the current testnet implementation, the paymaster unconditionally sponsors all operations for demo frictionlessness. The EntryPoint deposits that fund gas sponsorship must be topped up periodically by the deployer.
+
+---
+
+## Encrypted Compliance Ledger — Zama fhEVM
+
+The Zama layer stores compliance records in a form that is selectively decryptable without being publicly readable. It runs on Zama's Sepolia testnet, which implements Fully Homomorphic Encryption at the EVM level.
+
+### ComplianceReceiver
+
+The ComplianceReceiver is a LayerZero V2 OApp deployed on Zama Sepolia. It receives inbound messages from the ComplianceBridge and decodes them based on the leading message type byte. It then routes each decoded payload to the ComplianceRegistry.
+
+### ComplianceRegistry
+
+The ComplianceRegistry is the core privacy-preserving storage contract. It maintains an isolated ledger per company, keyed by the Flow proxy address.
+
+Each compliance record stores:
+- `flowTxHash` — the deterministic link to the Flow transaction or intent
+- `recipients[]` and `amounts[]` — plaintext payment data. Payment amounts and recipient addresses remain public on the compliance ledger because they already exist on the public payment ledger. Only the compliance context is encrypted.
+- `categories[]` — one `euint8` FHE ciphertext per recipient
+- `jurisdictions[]` — one `euint8` FHE ciphertext per recipient
+- `timestamp` — block timestamp at record creation
+
+FHE values are created using `FHE.fromExternal(handle, proof)`, which validates the zero-knowledge proof and materialises the ciphertext handle. Access is immediately granted to the contract itself (`FHE.allowThis`) and the company's master EOA (`FHE.allow(value, masterEOA)`). If auditors have been added, they receive access retroactively across all historical records.
+
+**Auditor management.** Companies can designate up to three external auditors by calling `addAuditor(proxyAccount, auditorAddress)` directly on Sepolia with their master EOA. Adding an auditor triggers a retroactive loop that grants FHE decryption access to every category and jurisdiction value in the company's entire historical ledger. Removing an auditor revokes access for future records but does not revoke access already granted to historical ciphertexts.

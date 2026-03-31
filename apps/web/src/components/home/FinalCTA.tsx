@@ -43,9 +43,7 @@ export default function FinalCTA() {
             Try the demo
           </Link>
           <Link
-            href="https://github.com/Stoneybro/complyr#readme"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/docs"
             className="border border-on-primary text-on-primary px-12 py-6 text-sm font-bold uppercase tracking-[0.2em] hover:bg-on-primary hover:text-primary hover:scale-105 active:scale-95 transition-all text-center"
           >
             Read the docs

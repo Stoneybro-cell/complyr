@@ -1,0 +1,12 @@
+import { source } from '@/lib/source';
+import { createSearchAPI } from 'fumadocs-core/search/server';
+
+export const { GET } = createSearchAPI('advanced', {
+  indexes: source.getPages().map((page) => ({
+    title: (page.data as any).title ?? '',
+    description: (page.data as any).description ?? '',
+    url: page.url,
+    id: page.url,
+    structuredData: (page.data as any).structuredData,
+  })),
+});

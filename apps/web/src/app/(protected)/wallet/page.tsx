@@ -33,6 +33,7 @@ export default function Page() {
 
   return (
     <SidebarProvider
+      defaultOpen={true}
       style={
         {
           "--sidebar-width": "350px",

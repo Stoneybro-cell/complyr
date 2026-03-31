@@ -1,0 +1,36 @@
+---
+title: Auditor Portal
+description: Understanding the external auditor access and verification flow.
+---
+
+## Auditor Portal
+
+![Auditor Portal](/complyr-audit-portal.png)
+
+The Auditor Portal is a dedicated interface that allows external auditors and regulators to verify a company's compliance records without accessing the company's main dashboard.
+
+### How it works
+
+**Sharing access.** A company owner navigates to **Compliance → Access** tab and clicks **Share Access Link**. This copies a URL of the form `https://usecomplyr.vercel.app/auditor/[proxyAddress]` to the clipboard.
+
+**Adding an auditor.** Before sharing the link, the owner adds the auditor's wallet address via **Authorize Auditor**. This transaction is submitted on Zama Sepolia and retroactively grants the auditor FHE decryption access to all existing records.
+
+**Auditor login.** The auditor navigates to the shared URL and connects their wallet (MetaMask or any injected provider). If their address is on the authorised list, the session is established.
+
+**Decryption.** The auditor clicks **Decrypt Compliance Data**. The portal generates a temporary keypair, creates an EIP-712 token scoped to the ComplianceRegistry and signed with a 1-day validity window, and calls `fhevm.userDecrypt`. The Zama KMS validates the signature, checks ACL permissions, and returns plaintext values for every accessible record.
+
+**What auditors can see.** Auditors have conditional decryption rights via ACL. They can only decrypt records they have been granted access to through the fhEVM access control list. When granted access, they can view:
+- All plaintext record metadata (transaction hash, date, recipients, amounts)
+- Decrypted expense category per recipient
+- Decrypted jurisdiction per recipient
+- Compliance health score and summary statistics (The frontend derives a simple compliance completeness score based on available metadata.)
+
+Auditors cannot modify records, authorise other auditors, or access any company data beyond what was explicitly shared.
+
+### Auditor portal URL format
+
+```text
+https://usecomplyr.vercel.app/auditor/{proxyAccountAddress}
+```
+
+Where `proxyAccountAddress` is the company's Flow EVM smart wallet address.

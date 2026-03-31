@@ -1,0 +1,12 @@
+{
+  "title": "Complyr Docs",
+  "pages": [
+    "index",
+    "architecture",
+    "smart-contracts",
+    "compliance-model",
+    "getting-started",
+    "auditor-portal",
+    "limitations-roadmap"
+  ]
+}

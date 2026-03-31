@@ -113,9 +113,10 @@ export function useRecurringPayment(availableEthBalance?: string) {
                         amountsInWei,
                         BigInt(params.duration),
                         BigInt(params.interval),
-                        // If startTime is 0 (not set by user), use current time so the
-                        // contract never sees a value in the past
-                        BigInt(params.transactionStartTime || Math.floor(Date.now() / 1000)),
+                        // If startTime is 0 (not set by user), default to 2 min from now.
+                        // The contract rejects any value <= block.timestamp, so we need
+                        // a buffer to account for signing + bundler + mining delays.
+                        BigInt(params.transactionStartTime || (Math.floor(Date.now() / 1000) + 120)),
                         categoryHandles,
                         categoryProofs,
                         jurisdictionHandles,
@@ -124,6 +125,9 @@ export function useRecurringPayment(availableEthBalance?: string) {
                 });
 
                 // 3. Send createIntent via UserOp
+                // Manual gas limits provided because the permissionless library's
+                // internal estimation flow fails for large calldata with FHE handles.
+                // Direct bundler calls succeed — this bypasses the library's estimation.
                 statusUpdate("Signing...");
                 const txLoading = toast.loading("Indexing recurring payment...");
                 const hash = await smartAccountClient.sendUserOperation({
@@ -135,6 +139,9 @@ export function useRecurringPayment(availableEthBalance?: string) {
                             value: 0n,
                         },
                     ],
+                    callGasLimit: 800_000n,
+                    verificationGasLimit: 200_000n,
+                    preVerificationGas: 100_000n,
                 });
 
                 statusUpdate("Confirming...");

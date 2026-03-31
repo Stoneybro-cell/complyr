@@ -1,6 +1,7 @@
+"use client";
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+
 export default function Navigation() {
   return (
     <header className="fixed top-0 w-full flex justify-between items-center px-6 py-4 mx-auto bg-white/80 dark:bg-black/80 backdrop-blur-none border-b border-black/10 dark:border-white/10 z-50">
@@ -19,7 +20,24 @@ export default function Navigation() {
           <span className="font-bold uppercase tracking-tighter text-2xl">Complyr</span>
         </div>
       </div>
-      <nav className="hidden md:flex gap-8 items-center">
+      {/* Use inline style for display to prevent fumadocs-ui/style.css from overriding Tailwind hidden class */}
+      <nav style={{ display: 'flex' }} className="gap-8 items-center pr-6 max-[767px]:hidden">
+        <Link
+          href="/docs"
+          className="relative text-xs font-semibold uppercase tracking-widest text-black dark:text-white group py-1"
+        >
+          Documentation
+          <span className="absolute left-0 bottom-0 w-full h-[1.5px] bg-black dark:bg-white scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
+        </Link>
+        <Link
+          href="https://github.com/Stoneybro/complyr"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="relative text-xs font-semibold uppercase tracking-widest text-black dark:text-white group py-1"
+        >
+          GitHub
+          <span className="absolute left-0 bottom-0 w-full h-[1.5px] bg-black dark:bg-white scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
+        </Link>
       </nav>
       <Link
         href="/login"

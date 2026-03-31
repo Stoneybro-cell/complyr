@@ -33,7 +33,7 @@ export default function Footer() {
           <h4 className="font-inter text-[10px] font-bold uppercase tracking-widest mb-8 text-black dark:text-white">Resources</h4>
           <ul className="space-y-4">
             <li><Link href="/login" className="font-inter text-[10px] uppercase tracking-widest text-gray-400 dark:text-gray-600 hover:text-black dark:hover:text-white transition-all underline">Demo</Link></li>
-            <li><Link href="https://github.com/Stoneybro/complyr#readme" target="_blank" rel="noopener noreferrer" className="font-inter text-[10px] uppercase tracking-widest text-gray-400 dark:text-gray-600 hover:text-black dark:hover:text-white transition-all underline">Docs</Link></li>
+            <li><Link href="/docs" className="font-inter text-[10px] uppercase tracking-widest text-gray-400 dark:text-gray-600 hover:text-black dark:hover:text-white transition-all underline">Docs</Link></li>
             <li><Link href="https://github.com/Stoneybro/complyr" target="_blank" rel="noopener noreferrer" className="font-inter text-[10px] uppercase tracking-widest text-gray-400 dark:text-gray-600 hover:text-black dark:hover:text-white transition-all underline">GitHub</Link></li>
             <li><Link href="https://github.com/Stoneybro/complyr/tree/main/packages/contract" target="_blank" rel="noopener noreferrer" className="font-inter text-[10px] uppercase tracking-widest text-gray-400 dark:text-gray-600 hover:text-black dark:hover:text-white transition-all underline">Contracts</Link></li>
           </ul>
@@ -50,7 +50,7 @@ export default function Footer() {
       </div>
       <div className="px-12 pb-8 flex flex-col md:flex-row justify-between items-center border-t border-black/5 dark:border-white/5 pt-8">
         <p className="font-inter text-[10px] uppercase tracking-widest text-gray-400 dark:text-gray-700">
-          © 2024 COMPLYR INFRASTRUCTURE. PL Genesis: Frontiers of Collaboration.
+          © 2026 COMPLYR INFRASTRUCTURE. PL Genesis: Frontiers of Collaboration.
         </p>
         <p className="font-inter text-[10px] uppercase tracking-widest text-gray-300 dark:text-gray-800">
           MATHEMATICALLY GUARANTEED PRIVACY. ENTERPRISE-GRADE ON-CHAIN SETTLEMENT.

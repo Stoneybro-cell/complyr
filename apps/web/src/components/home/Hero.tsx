@@ -29,9 +29,7 @@ export default function Hero() {
             Try the demo
           </Link>
           <Link
-            href="https://github.com/Stoneybro/complyr#readme"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/docs"
             className="border border-primary text-primary px-10 py-5 text-sm font-bold uppercase tracking-[0.2em] hover:bg-surface-container-highest hover:scale-[1.02] active:scale-[0.98] transition-all text-center"
           >
             Read the docs

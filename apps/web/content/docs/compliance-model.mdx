@@ -1,0 +1,82 @@
+---
+title: FHE Compliance Model
+description: Deep dive into the metadata schema and client-side FHE flow.
+---
+
+## Compliance Model & FHE
+
+![Compliance Dashboard](/complyr-compliance-dashboard.png)
+
+### The compliance metadata schema
+
+Complyr captures two dimensions of compliance metadata per recipient per payment:
+
+**Jurisdiction** — the regulatory jurisdiction applicable to the recipient. Mapped to a `uint8` enum on-chain.
+
+| Code | Value | Label |
+|------|-------|-------|
+| 0 | NONE | Not specified |
+| 1 | US_CA | US — California |
+| 2 | US_NY | US — New York |
+| 3 | US_TX | US — Texas |
+| 4 | US_FL | US — Florida |
+| 5 | US_OTHER | US — Other |
+| 6 | UK | United Kingdom |
+| 7 | EU_DE | Germany |
+| 8 | EU_FR | France |
+| 9 | EU_OTHER | Other EU |
+| 10 | NG | Nigeria |
+| 11 | SG | Singapore |
+| 12 | AE | UAE |
+| 13 | OTHER | Other |
+
+**Category** — the expense classification for the payment. Mapped to a `uint8` enum on-chain.
+
+| Code | Value | Label |
+|------|-------|-------|
+| 0 | NONE | Not specified |
+| 1 | PAYROLL_W2 | Payroll (W2) |
+| 2 | PAYROLL_1099 | Payroll (1099) |
+| 3 | CONTRACTOR | Contractor |
+| 4 | BONUS | Bonus |
+| 5 | INVOICE | Invoice |
+| 6 | VENDOR | Vendor |
+| 7 | GRANT | Grant |
+| 8 | DIVIDEND | Dividend |
+| 9 | REIMBURSEMENT | Reimbursement |
+| 10 | OTHER | Other |
+
+### How FHE encryption works in Complyr
+
+Complyr uses Zama's `relayer-sdk-js` for client-side encryption. The encryption flow is:
+
+**1. Instance creation.** The SDK is loaded from Zama's CDN and initialised with `SepoliaConfig`, which contains the correct KMS, ACL, and gateway addresses for Zama Sepolia.
+
+**2. Input encryption.** For each recipient's category and jurisdiction values, the frontend creates an `EncryptedInput` targeting the ComplianceRegistry contract address and the relay wallet address as the authorised caller:
+
+```typescript
+const input = fhevm.createEncryptedInput(REGISTRY_ADDRESS, RELAY_ADDRESS);
+input.add8(categoryValue); // uint8 enum value
+const encrypted = await input.encrypt();
+// Returns: { handles: Uint8Array[], inputProof: Uint8Array }
+```
+
+**3. Handle and proof extraction.** The resulting ciphertext handle (32 bytes) and zero-knowledge proof are encoded as hex strings and sent to be recorded on the registry. In production architecture, encrypted compliance payloads are delivered via the LayerZero bridge. For demo reliability on testnet, a relay API can submit records directly to the registry.
+
+**4. On-chain validation.** `FHE.fromExternal(handle, proof)` validates the proof and returns a live `euint8` handle bound to the Zama coprocessor.
+
+**5. ACL permission grant.** The registry calls `FHE.allow(value, address)` to grant decryption rights to the master EOA and any active auditors.
+
+**6. Decryption.** An authorised party decrypts their records by generating a keypair, creating an EIP-712 token scoped to the registry contract, signing it with their wallet, and calling `fhevm.userDecrypt(handles, privateKey, publicKey, signature, ...)`. The Zama KMS validates the signature, checks ACL permissions, and returns plaintext values.
+
+### The trust model
+
+Complyr does not enforce the accuracy of the metadata a company submits. A company self-reports its categories and jurisdictions, consistent with how traditional accounting works — accountants self-report but bear legal liability for what they commit. Complyr enforces:
+
+- existence of compliance records
+- immutability of records
+- cryptographic linkage to transactions
+
+Once a compliance record is committed, it cannot be altered or deleted. The combination of a deterministic intent identifier and an immutable on-chain record provides the same accountability primitive as a signed accounting entry in traditional finance.
+
+The system is designed to give regulators a credible compliance ledger, not to replace the legal obligations of the business.
