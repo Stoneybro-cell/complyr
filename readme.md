@@ -237,7 +237,7 @@ Auditors can see: all plaintext payment metadata, decrypted expense category per
 |---|---|
 | Single FLOW transfers with compliance metadata | ✅ Live |
 | Batch payments (up to 10 recipients) | ✅ Live |
-| Recurring payments / payroll scheduling | ✅ Implemented |
+| Recurring payments / payroll scheduling | ✅ Live |
 | Client-side FHE encryption (browser WASM) | ✅ Live |
 | Cross-chain compliance bridge (LayerZero V2) | ✅ Live |
 | Encrypted compliance storage on Zama fhEVM | ✅ Live |
