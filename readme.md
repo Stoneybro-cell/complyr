@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./apps/web/public/complyrlogo.svg" alt="Complyr" width="90" height="90" />
+<img src="./apps/web/public/complyrlogo-light.svg" alt="Complyr" width="90" height="90" />
 
 # Complyr
 
