@@ -1,6 +1,6 @@
 ---
 title: Architecture & HashKey
-description: Technical design of Complyr across three computational layers.
+description: Technical design of Complyr across computational layers.
 ---
 
 ## How Complyr Works
@@ -9,17 +9,15 @@ At a high level, every Complyr payment follows a consistent sequence:
 
 ![Batch Payment with Compliance Metadata](/comply-wallet-batchpayment.png)
 
-**1. Intent creation.** A business creates a payment intent through the Complyr interface or directly via contract call. Along with recipient addresses and amounts, they attach compliance metadata: an expense category and a jurisdiction code per recipient.
+**1. Intent creation.** A business creates a payment intent through the Complyr interface. Along with recipient addresses and amounts, they attach compliance metadata: an expense category and a jurisdiction code per recipient.
 
-**2. Client-side encryption.** Before anything reaches the blockchain, the compliance metadata is encrypted in the user's browser using Zama's fhEVM JavaScript SDK. The resulting ciphertext handles and zero-knowledge proofs confirm that the encrypted values are well-formed, without revealing the underlying data.
+**2. Client-side encryption.** Before anything reaches the blockchain, the compliance metadata is encrypted in the user's browser using AES-256-GCM. The resulting ciphertext encodes the compliance payload without revealing the underlying data.
 
-**3. Payment execution on HashKey Chain.** The smart wallet executes the payment. For single and batch transfers, funds move immediately. For recurring payments, the intent is registered with the on-chain scheduler and funds are locked until each payment cycle executes.
+**3. Payment execution on HashKey Chain.** The ERC-4337 smart wallet executes the payment. For single and batch transfers, funds move immediately. For recurring payments, the intent is registered with the on-chain scheduler and funds are locked until each payment cycle executes. Alternatively, users can pay via the HashKey Settlement Protocol (HSP) Checkout for inbound payments.
 
-**4. Cross-chain compliance dispatch.** The Compliance Bridge — a LayerZero V2 OApp deployed on HashKey Chain — encodes the compliance report and sends it to Zama Sepolia. On mainnet this route has full DVN coverage. On testnet, no DVN is configured for the HashKey Chain → Sepolia path, so a relay API submits records directly to the registry to demonstrate the integration end-to-end.
+**4. Encrypted record storage.** The compliance payload is submitted to the HashKey Chain `ComplianceRegistry` and cryptographically linked to the transaction hash.
 
-**5. Encrypted record storage on Zama.** The Compliance Receiver on Zama decodes the incoming message and calls the Compliance Registry, which validates the zero-knowledge proofs, materialises the FHE ciphertext on-chain, and grants access to the company's master wallet.
-
-**6. Selective decryption.** The company owner or an authorised auditor can decrypt their compliance records at any time by connecting their wallet and signing an EIP-712 request through the Zama decryption gateway.
+**5. Selective decryption.** The company owner or an authorised auditor can decrypt their compliance records at any time by connecting their wallet and interacting with the ECIES key management portal.
 
 ---
 
@@ -30,19 +28,13 @@ Complyr spans three distinct layers. Each layer has a specific responsibility an
 ```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                        APPLICATION LAYER                        │
-│    Next.js · Privy · fhevmjs · Permissionless · Skandha (AA)    │
+│                Next.js · Privy · AES-256 · HSP                  │
 └────────────────────────────┬────────────────────────────────────┘
                              │ UserOperations (ERC-4337)
 ┌────────────────────────────▼────────────────────────────────────┐
-│                  SMART CONTRACT LAYER — HashKey Chain                 │
+│                  SMART CONTRACT LAYER — HashKey Chain           │
 │   SmartWallet · SmartWalletFactory · IntentRegistry             │
-│   ComplianceBridge (LayerZero OApp) · VerifyingPaymaster        │
-└────────────────────────────┬────────────────────────────────────┘
-                             │ LayerZero V2 cross-chain message
-┌────────────────────────────▼────────────────────────────────────┐
-│              CONFIDENTIAL RECORD LAYER — Zama Sepolia           │
-│         ComplianceReceiver (OApp) · ComplianceRegistry          │
-│                    (euint8 FHE ciphertext)                      │
+│   ComplianceRegistry · VerifyingPaymaster                       │
 └────────────────────────────┬────────────────────────────────────┘
                              │ Event indexing
 ┌────────────────────────────▼────────────────────────────────────┐
@@ -65,7 +57,7 @@ In production, the paymaster would verify an off-chain signature to authorise ga
 
 ## Data Layer — Envio Indexer
 
-The Envio indexer provides the real-time transaction history that powers the Complyr dashboard. It runs on Envio's hosted infrastructure and indexes 7 event types across 3 contracts on HashKey Chain:
+The Envio indexer provides the real-time transaction history that powers the Complyr dashboard. It runs on Envio's hosted infrastructure and indexes events across contracts on HashKey Chain:
 
 **SmartWallet events:**
 - `Executed` — single payment transfers
@@ -78,7 +70,7 @@ The Envio indexer provides the real-time transaction history that powers the Com
 **SmartWalletFactory events:**
 - `AccountCreated` — new business account deployments
 
-**IntentRegistry events:**
+**IntentRegistry / HSP events:**
 - `IntentCreated` — new recurring payment schedule creation
 - `IntentExecuted` — scheduled payment execution
 - `IntentCancelled` — schedule cancellation with refund

@@ -9,19 +9,11 @@ This section documents the honest edges of the current implementation. We are no
 
 ### Testnet only
 
-Complyr currently runs on HashKey Chain testnet (chain ID 545) and Zama Sepolia. The infrastructure is not deployed to any mainnet. Contract security has not been audited. Do not use this for real financial transactions.
+Complyr currently runs on HashKey Chain testnet. The infrastructure is not deployed to any mainnet. Contract security has not been audited. Do not use this for real financial transactions.
 
-### LayerZero: no DVN coverage on the HashKey Chain Testnet → Sepolia route
+### Key Retrieval
 
-The cross-chain compliance bridge is fully implemented and deployed. The `ComplianceBridge` contract on HashKey Chain correctly encodes and dispatches messages via LayerZero V2. However, the **HashKey Chain Testnet → Sepolia route has no DVN (Decentralised Verifier Network) configured in LayerZero's current testnet infrastructure**. Messages reach the LayerZero endpoint and are accepted, but are never forwarded — because no verifier network exists for this specific path on testnet.
-
-This is not a limitation of the bridge implementation. The HashKey Chain → Sepolia route is supported on mainnet, which is why it was chosen for the architecture. The same contracts and message encoding work correctly on any network where the route has DVN coverage. LayerZero support has been contacted to request DVN availability for this testnet route.
-
-As a functional substitute, a relay API (`/api/relay/compliance-record`) submits compliance records directly to the Zama registry with the correct payload structure, demonstrating the full end-to-end integration without depending on missing testnet infrastructure. The bridge remains the canonical path for production.
-
-### Auditor FHE access revocation is partial
-
-When an auditor is removed, their address is revoked from new records going forward. However, FHE ACL permissions already granted to historical records persist — this is a property of how Zama's on-chain ACL works and cannot be undone without a redesign of the ciphertext storage model. The practical implication is that removing an auditor should be understood as preventing future access, not retroactively restricting historical access.
+If a company loses all access to the local browser state or instances where their symmetric AES key is maintained in sync with the privy wallet, they may lose decryption capability for their historical records.
 
 ### Recurring payment execution reliability
 
@@ -30,14 +22,6 @@ Recurring payments depend on a keeper service that must remain online. If the ke
 ### Maximum recipients per intent
 
 The IntentRegistry enforces a hard limit of 10 recipients per intent. This is sufficient for most payroll and subscription use cases but is not suitable for large-scale airdrop-style distributions.
-
-### Gas limits on `addAuditor` for large ledgers
-
-The retroactive FHE access grant loop in `addAuditor` iterates over all historical records for a company. For companies with hundreds or thousands of records, this call may approach or exceed block gas limits on Zama Sepolia. This is a known limitation of the current architecture and would need to be addressed with a paginated batching mechanism in production.
-
-### fhEVM client-side encryption performance
-
-Encrypting compliance metadata in the browser using Zama's WASM SDK is computationally intensive and can take 2–10 seconds per transaction, during which the browser tab may appear frozen. This is an inherent property of the current fhEVM client-side toolkit. Future versions of the Zama SDK are expected to improve this significantly.
 
 ### Single jurisdiction + category per recipient
 
@@ -62,8 +46,6 @@ The following capabilities are planned for development after the current release
 **Multi-jurisdiction and multi-category support.** Extending the compliance schema to allow a single recipient to have multiple applicable jurisdictions or categories, necessary for cross-border contractor payments with split reporting obligations.
 
 **Compliance health scoring.** A richer scoring model that incorporates completeness of metadata, consistency with prior periods, anomaly detection, and jurisdiction-specific threshold checks.
-
-**Paginated auditor grant.** A batching mechanism for `addAuditor` that allows safe retroactive access grants on ledgers with large numbers of records, without risk of hitting block gas limits.
 
 ### Long term
 

@@ -1,9 +1,9 @@
 ---
-title: FHE Compliance Model
-description: Deep dive into the metadata schema and client-side FHE flow.
+title: Compliance Model
+description: Deep dive into the metadata schema and client-side AES flow.
 ---
 
-## Compliance Model & FHE
+## Compliance Model & Encryption
 
 ![Compliance Dashboard](/complyr-compliance-dashboard.png)
 
@@ -46,28 +46,15 @@ Complyr captures two dimensions of compliance metadata per recipient per payment
 | 9 | REIMBURSEMENT | Reimbursement |
 | 10 | OTHER | Other |
 
-### How FHE encryption works in Complyr
+### How Encryption works in Complyr
 
-Complyr uses Zama's `relayer-sdk-js` for client-side encryption. The encryption flow is:
+Unlike early prototypes that relied on FHE, Complyr utilizes standard Client-Side Encryption with **AES-256-GCM** and **ECIES (Elliptic Curve Integrated Encryption Scheme)** for practical performance and strict control over data readability.
 
-**1. Instance creation.** The SDK is loaded from Zama's CDN and initialised with `SepoliaConfig`, which contains the correct KMS, ACL, and gateway addresses for Zama Sepolia.
-
-**2. Input encryption.** For each recipient's category and jurisdiction values, the frontend creates an `EncryptedInput` targeting the ComplianceRegistry contract address and the relay wallet address as the authorised caller:
-
-```typescript
-const input = fhevm.createEncryptedInput(REGISTRY_ADDRESS, RELAY_ADDRESS);
-input.add8(categoryValue); // uint8 enum value
-const encrypted = await input.encrypt();
-// Returns: { handles: Uint8Array[], inputProof: Uint8Array }
-```
-
-**3. Handle and proof extraction.** The resulting ciphertext handle (32 bytes) and zero-knowledge proof are encoded as hex strings and submitted to the registry. The canonical path is via the LayerZero bridge (ComplianceBridge → ComplianceReceiver → ComplianceRegistry). On testnet, the HashKey Chain → Sepolia route has no DVN configured, so a relay API submits records directly to the registry with the same payload structure, proving the integration works end-to-end independently of the missing testnet infrastructure.
-
-**4. On-chain validation.** `FHE.fromExternal(handle, proof)` validates the proof and returns a live `euint8` handle bound to the Zama coprocessor.
-
-**5. ACL permission grant.** The registry calls `FHE.allow(value, address)` to grant decryption rights to the master EOA and any active auditors.
-
-**6. Decryption.** An authorised party decrypts their records by generating a keypair, creating an EIP-712 token scoped to the registry contract, signing it with their wallet, and calling `fhevm.userDecrypt(handles, privateKey, publicKey, signature, ...)`. The Zama KMS validates the signature, checks ACL permissions, and returns plaintext values.
+1. **Company Keys**: A symmetric master AES key is generated for the company. Data is encrypted client-side using this key before landing on-chain.
+2. **Metadata Input**: The frontend packages recipient category and jurisdiction values into an encrypted payload. 
+3. **On-chain Validation**: The payload is stored in the `ComplianceRegistry` on HashKey Chain.
+4. **Auditor Portal & ECIES**: When granting access to an auditor, the company's master AES key is encrypted using the auditor's Ethereum public key (ECIES) and stored in the registry. 
+5. **Decryption**: Authorized auditors fetch the encrypted AES key, use their private key to decrypt it locally, and then locally decrypt the matching batch of records from the ComplianceRegistry.
 
 ### The trust model
 

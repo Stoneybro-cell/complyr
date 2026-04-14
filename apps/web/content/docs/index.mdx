@@ -11,9 +11,9 @@ Complyr is a compliance infrastructure layer for onchain business payments.
 
 When a company sends money from a blockchain wallet, the public record shows *who* was paid and *how much*. It says nothing about *why*. That gap — between raw transaction data and structured financial records — is the problem Complyr solves. Complyr solves the missing "why" in blockchain payments by attaching encrypted compliance metadata to every transaction.
 
-Complyr attaches an encrypted, immutable compliance record to every payment. Each record captures the business context of a transaction: its regulatory jurisdiction, expense category, and entity identifiers. This metadata is protected by Fully Homomorphic Encryption (FHE). Fully Homomorphic Encryption allows encrypted values to be stored and potentially computed on without revealing the underlying data.
+Complyr attaches an encrypted, immutable compliance record to every payment. Each record captures the business context of a transaction: its regulatory jurisdiction, expense category, and entity identifiers. This metadata is protected by AES-256-GCM encryption.
 
-The result is a dual ledger architecture: a public payment ledger on HashKey Chain and an encrypted compliance ledger on Zama fhEVM, permanently linked through a deterministic transaction reference.
+The result is a unified dual payment engine for HashKey Chain: an ERC-4337 Smart Treasury for outbound corporate payouts, and HashKey Settlement Protocol (HSP) Checkout integration for inbound customer payments, both routing through an AES-256 compliance layer.
 
 ![Complyr Wallet Dashboard](/complyr-wallet-dashboard.png)
 
@@ -50,10 +50,10 @@ Consider a company that makes three payments in a single week:
 
 Each transaction executes correctly on-chain. The amounts are correct. The recipients are correct. But the public record contains no indication that these are business expenses. Without structured documentation linking each payment to its purpose, those deductions may be disallowed by a tax authority. Unexplained outflows can be reclassified as personal income or, in more severe cases, flagged as evidence of financial misconduct.
 
-The compliance liability compounds for businesses operating across jurisdictions. A payroll payment to a contractor in Nigeria, an invoice to a vendor in Germany, and a salary disbursement to an employee in California each carry different regulatory obligations — different withholding requirements, different reporting thresholds, different document retention rules. On-chain, these payments are indistinguishable.
+The compliance liability compounds for businesses operating across jurisdictions. A payroll payment to a contractor in Nigeria, an invoice to a vendor in Germany, and a salary disbursement to an employee in California each carry different regulatory obligations — different withholding requirements, different reporting thresholds, different document retention rules. On-chain, these payments are indistinguishable. The problem applies just as much to inbound revenue: an e-commerce checkout via a hosted protocol lacks context about the customer's jurisdiction and product category.
 
 ### Why existing solutions fall short
 
 The conventional responses to this problem — off-chain accounting software, manual reconciliation, centralised compliance databases — require trusting a third party with sensitive financial data and maintaining a separate system that must be kept in sync with the blockchain. They introduce the very fragility and opacity that onchain finance is meant to eliminate.
 
-Complyr takes a different approach: the compliance record travels with the payment, is stored on-chain, and is protected by mathematics rather than access controls.
+Complyr takes a different approach: the compliance record travels with the payment, is stored on-chain, and is protected by cryptography rather than access controls.

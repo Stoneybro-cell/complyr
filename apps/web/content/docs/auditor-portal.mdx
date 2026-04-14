@@ -9,23 +9,28 @@ description: Understanding the external auditor access and verification flow.
 
 The Auditor Portal is a dedicated interface that allows external auditors and regulators to verify a company's compliance records without accessing the company's main dashboard.
 
-### How it works
+### The Simple Flow
 
-**Sharing access.** A company owner navigates to **Compliance → Access** tab and clicks **Share Access Link**. This copies a URL of the form `https://usecomplyr.vercel.app/auditor/[proxyAddress]` to the clipboard.
+1. **Authorization:** A company explicitly authorizes their external auditor's wallet address in the Complyr dashboard.
+2. **Sharing Access:** The company generates a secure **Auditor Access Link** (`/auditor/[proxyAddress]`) and shares it with the auditor.
+3. **Auditor Login:** The auditor navigates to the portal and connects their authorized wallet (MetaMask or any injected provider).
+4. **Visibility:** The auditor clicks **Decrypt Compliance Data**, and successfully views all records and downloads compliance reports without having actual login access to the company's bank account.
 
-**Adding an auditor.** Before sharing the link, the owner adds the auditor's wallet address via **Authorize Auditor**. This transaction is submitted on Zama Sepolia and retroactively grants the auditor FHE decryption access to all existing records.
+### Under the Hood (ECIES)
 
-**Auditor login.** The auditor navigates to the shared URL and connects their wallet (MetaMask or any injected provider). If their address is on the authorised list, the session is established.
+This system is powered by cryptography, not traditional software access controls.
 
-**Decryption.** The auditor clicks **Decrypt Compliance Data**. The portal generates a temporary keypair, creates an EIP-712 token scoped to the ComplianceRegistry and signed with a 1-day validity window, and calls `fhevm.userDecrypt`. The Zama KMS validates the signature, checks ACL permissions, and returns plaintext values for every accessible record.
+**Key Wrapping:** When the business authorizes the auditor, their browser takes the company's master AES compliance key and securely encrypts it using the auditor's *public* Ethereum key (via ECIES). This encrypted key is uploaded to HashKey Chain.
 
-**What auditors can see.** Auditors have conditional decryption rights via ACL. They can only decrypt records they have been granted access to through the fhEVM access control list. When granted access, they can view:
-- All plaintext record metadata (transaction hash, date, recipients, amounts)
+**Local Decryption:** When the auditor logs into the portal and clicks to decrypt, their browser uses their wallet's *private* key to decrypt the AES key client-side. The browser then fetches ciphertext payloads from the blockchain and decrypts them locally.
+
+**What auditors can see.** Auditors only have access to records if they have the keys for them. When granted access, they can view:
+- Plaintext payment metadata (transaction hash, date, recipients, amounts)
 - Decrypted expense category per recipient
-- Decrypted jurisdiction per recipient
-- Compliance health score and summary statistics (The frontend derives a simple compliance completeness score based on available metadata.)
+- Decrypted regulatory jurisdiction per recipient
+- Compliance health score and summary statistics
 
-Auditors cannot modify records, authorise other auditors, or access any company data beyond what was explicitly shared.
+Auditors cannot modify records, authorise additional parties, or access company data beyond what they explicitly have the key for.
 
 ### Auditor portal URL format
 
