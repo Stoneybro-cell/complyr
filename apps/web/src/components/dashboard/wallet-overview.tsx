@@ -48,12 +48,13 @@ export function WalletOverview({ walletAddress }: WalletOverviewProps) {
     };
 
     const stats = useMemo(() => {
-        if (!transactions) return { single: 0, batch: 0, subscription: 0, payroll: 0 };
+        if (!transactions) return { single: 0, batch: 0, subscription: 0, payroll: 0, hsp: 0 };
 
         let single = 0;
         let batch = 0;
         let subscription = 0;
         let payroll = 0;
+        let hsp = 0;
 
         transactions.forEach((tx: TransactionItemProps) => {
             if (tx.type === ActivityType.EXECUTE) {
@@ -67,10 +68,12 @@ export function WalletOverview({ walletAddress }: WalletOverviewProps) {
                 } else {
                     subscription++;
                 }
+            } else if ((tx.type as any) === "HSP Checkout") {
+                hsp++;
             }
         });
 
-        return { single, batch, subscription, payroll };
+        return { single, batch, subscription, payroll, hsp };
     }, [transactions]);
 
 
@@ -101,6 +104,7 @@ export function WalletOverview({ walletAddress }: WalletOverviewProps) {
                     batchCount={stats.batch}
                     subscriptionCount={stats.subscription}
                     payrollCount={stats.payroll}
+                    hspCount={stats.hsp}
                     isLoading={historyIsLoading}
                 />
             </div>

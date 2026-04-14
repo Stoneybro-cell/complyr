@@ -11,8 +11,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Plus, Trash2, Users } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, Plus, Trash2, Users, Info } from "lucide-react";
 import { useRecurringPayment } from "@/hooks/payments/useRecurringPayment";
 import { useSingleTransfer } from "@/hooks/payments/useSingleTransfer";
 import { useBatchTransfer } from "@/hooks/payments/useBatchTransfer";
@@ -61,24 +63,30 @@ const RecipientRow = React.memo(({
     onUpdate: (type: "batch" | "recurring", index: number, field: keyof RecipientData, value: string) => void;
     onRemove: (type: "batch" | "recurring", index: number) => void;
 }) => (
-    <div className="space-y-2 p-3 border rounded-lg">
-        <div className="flex gap-2 items-center">
-            <Input
-                placeholder="0x..."
-                value={recipient.address}
-                onChange={(e) => onUpdate(type, index, "address", e.target.value)}
-                className="flex-1 font-mono text-sm"
-            />
-            <div className="relative w-32">
+    <div className="space-y-4 p-4 border rounded-lg">
+        <div className="flex gap-2 items-end">
+            <div className="flex-1 space-y-2">
+                <Label className="text-xs text-muted-foreground">Recipient Address</Label>
                 <Input
-                    type="number"
-                    step="0.01"
-                    placeholder="Amount"
-                    value={recipient.amount}
-                    onChange={(e) => onUpdate(type, index, "amount", e.target.value)}
-                    className="pr-12"
+                    placeholder="0x..."
+                    value={recipient.address}
+                    onChange={(e) => onUpdate(type, index, "address", e.target.value)}
+                    className="font-mono text-sm"
                 />
-                <span className="absolute right-3 top-2.5 text-xs text-muted-foreground">{tokenSymbol}</span>
+            </div>
+            <div className="relative w-32 space-y-2">
+                <Label className="text-xs text-muted-foreground">Amount</Label>
+                <div className="relative">
+                    <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={recipient.amount}
+                        onChange={(e) => onUpdate(type, index, "amount", e.target.value)}
+                        className="pr-12"
+                    />
+                    <span className="absolute right-3 top-2.5 text-xs text-muted-foreground">{tokenSymbol}</span>
+                </div>
             </div>
             {showRemove && (
                 <Button
@@ -86,20 +94,19 @@ const RecipientRow = React.memo(({
                     variant="ghost"
                     size="icon"
                     onClick={() => onRemove(type, index)}
+                    className="mb-0.5"
                 >
                     <Trash2 className="h-4 w-4" />
                 </Button>
             )}
         </div>
-        <div className="mt-4 pt-3 border-t border-dashed">
-            <div className="text-[10px] uppercase font-mono tracking-widest text-muted-foreground mb-3 px-1 flex items-center gap-2">
-                <span className="h-1 w-1 bg-muted-foreground rounded-full" />
-                Compliance Records (Encrypted)
-            </div>
+        <div className="pt-3 border-t border-dashed">
+            <h4 className="text-sm font-medium mb-3">Compliance Records (Encrypted)</h4>
             <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Reference ID</Label>
                     <Input
-                        placeholder="Ref ID (Max 7)"
+                        placeholder="Max 7 char"
                         value={recipient.referenceId || ''}
                         onChange={(e) => onUpdate(type, index, "referenceId", e.target.value.substring(0, 7))}
                         className="h-8 text-xs bg-muted/30"
@@ -107,12 +114,13 @@ const RecipientRow = React.memo(({
                     />
                 </div>
                 <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Jurisdiction</Label>
                     <Select
                         value={recipient.jurisdiction || ''}
                         onValueChange={(value) => onUpdate(type, index, "jurisdiction", value)}
                     >
                         <SelectTrigger className="w-full h-8 text-xs bg-muted/30">
-                            <SelectValue placeholder="Jurisdiction" />
+                            <SelectValue placeholder="Select..." />
                         </SelectTrigger>
                         <SelectContent>
                             {JURISDICTION_OPTIONS.map((j) => (
@@ -124,12 +132,13 @@ const RecipientRow = React.memo(({
                     </Select>
                 </div>
                 <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Category</Label>
                     <Select
                         value={recipient.category || ''}
                         onValueChange={(value) => onUpdate(type, index, "category", value)}
                     >
                         <SelectTrigger className="w-full h-8 text-xs bg-muted/30">
-                            <SelectValue placeholder="Category" />
+                            <SelectValue placeholder="Select..." />
                         </SelectTrigger>
                         <SelectContent>
                             {CATEGORY_OPTIONS.map((c) => (
@@ -159,11 +168,12 @@ interface PaymentFormProps {
 }
 
 type PaymentType = "single" | "batch" | "recurring" | "hsp";
-type TokenType = "USDC" | "HSK";
 
 export function PaymentForm({ walletAddress }: PaymentFormProps) {
-    const [paymentType, setPaymentType] = useState<PaymentType>("single");
-    const [selectedToken, setSelectedToken] = useState<TokenType>("USDC");
+    const [topLevelTab, setTopLevelTab] = useState<"onchain" | "hsp">("onchain");
+    const [onchainTab, setOnchainTab] = useState<"single" | "batch" | "recurring">("single");
+
+    const currentPaymentType: PaymentType = topLevelTab === "hsp" ? "hsp" : onchainTab;
 
     // Fetch balances
     const { data: wallet } = useQuery({
@@ -172,7 +182,7 @@ export function PaymentForm({ walletAddress }: PaymentFormProps) {
         enabled: !!walletAddress,
     });
 
-    const activeBalance = selectedToken === "USDC" ? wallet?.availableUsdcBalance : wallet?.availableHskBalance;
+    const activeBalance = wallet?.availableUsdcBalance;
 
     // Single payment state
     const [singleRecipient, setSingleRecipient] = useState<RecipientData>({ address: "", amount: "" });
@@ -207,26 +217,6 @@ export function PaymentForm({ walletAddress }: PaymentFormProps) {
             return () => clearTimeout(timer);
         }
     }, [singleMutation.isPending, batchMutation.isPending, recurringMutation.isPending]);
-
-    // Check if current recipients have compliance data from contacts
-    const getActiveRecipients = (): RecipientData[] => {
-        if (paymentType === "single") return [singleRecipient];
-        if (paymentType === "batch") return batchRecipients;
-        return recurringRecipients;
-    };
-
-    const hasContactCompliance = (): { hasJurisdiction: boolean; hasCategory: boolean; hasAny: boolean } => {
-        const recipients = getActiveRecipients();
-        const hasJurisdiction = recipients.some(r => r.jurisdiction && r.jurisdiction !== "none");
-        const hasCategory = recipients.some(r => r.category && r.category !== "none");
-        return {
-            hasJurisdiction,
-            hasCategory,
-            hasAny: hasJurisdiction || hasCategory
-        };
-    };
-
-    const complianceFromContact = hasContactCompliance();
 
     // Load contact for single transfer
     const loadContactForSingle = (contactId: string) => {
@@ -324,18 +314,14 @@ export function PaymentForm({ walletAddress }: PaymentFormProps) {
         };
     };
 
-    const getTokenAddress = () => {
-        return selectedToken === "USDC" ? MockUSDCAddress as `0x${string}` : undefined;
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setTransactionStatus("Initializing...");
 
-        const tokenAddress = getTokenAddress();
+        const tokenAddress = MockUSDCAddress as `0x${string}`;
 
         try {
-            if (paymentType === "single") {
+            if (currentPaymentType === "single") {
                 if (!singleRecipient.address || !singleRecipient.amount) {
                     toast.error("Please fill in recipient and amount");
                     setTransactionStatus("");
@@ -349,7 +335,7 @@ export function PaymentForm({ walletAddress }: PaymentFormProps) {
                     onStatusUpdate: setTransactionStatus,
                 });
                 setSingleRecipient({ address: "", amount: "", referenceId: "" });
-            } else if (paymentType === "batch") {
+            } else if (currentPaymentType === "batch") {
                 const addressesOnly = batchRecipients.filter(r => r.address);
                 if (addressesOnly.length < 2) {
                     toast.error("Batch payments require at least 2 recipients");
@@ -372,7 +358,7 @@ export function PaymentForm({ walletAddress }: PaymentFormProps) {
                     onStatusUpdate: setTransactionStatus,
                 });
                 setBatchRecipients([{ address: "", amount: "", referenceId: "" }]);
-            } else if (paymentType === "recurring") {
+            } else if (currentPaymentType === "recurring") {
                 if (!recurringName) {
                     toast.error("Please provide a name for this recurring payment");
                     setTransactionStatus("");
@@ -411,7 +397,7 @@ export function PaymentForm({ walletAddress }: PaymentFormProps) {
                 setRecurringRecipients([{ address: "", amount: "", referenceId: "" }]);
                 setRecurringDuration("");
                 setRecurringStartDate("");
-            } else if (paymentType === "hsp") {
+            } else if (currentPaymentType === "hsp") {
                 if (!singleRecipient.amount) {
                     toast.error("Please enter an amount");
                     setTransactionStatus("");
@@ -419,7 +405,7 @@ export function PaymentForm({ walletAddress }: PaymentFormProps) {
                 }
                 const res = await fetch("/api/hsp/orders", {
                     method: "POST",
-                    body: JSON.stringify({ amount: singleRecipient.amount, token: selectedToken })
+                    body: JSON.stringify({ amount: singleRecipient.amount, token: "USDC" })
                 });
                 const json = await res.json();
                 if (json.success) {
@@ -438,11 +424,11 @@ export function PaymentForm({ walletAddress }: PaymentFormProps) {
 
     // Contact selector component
     const ContactSelector = ({ onSelect, label = "Load from Contacts" }: { onSelect: (contactId: string) => void; label?: string }) => (
-        <div className="space-y-2">
+        <div className="space-y-4">
             <Select onValueChange={onSelect}>
                 <SelectTrigger className="w-full">
                     <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4" />
+                        <Users className="h-4 w-4 text-muted-foreground" />
                         <SelectValue placeholder={label} />
                     </div>
                 </SelectTrigger>
@@ -472,314 +458,377 @@ export function PaymentForm({ walletAddress }: PaymentFormProps) {
                     )}
                 </SelectContent>
             </Select>
-            <p className="text-[10px] text-muted-foreground px-1 italic">
-                💡 Tip: You can create and manage contacts in the sidebar to automate compliance data.
-            </p>
+            <Alert variant="default" className="bg-muted/50 text-muted-foreground border-none py-3">
+                <Info className="h-4 w-4" />
+                <AlertDescription className="text-xs">
+                    You can create and manage contacts in the sidebar to automate compliance data.
+                </AlertDescription>
+            </Alert>
         </div>
     );
 
     return (
         <div className="max-w-2xl mx-auto py-6">
             <Card>
-                <CardHeader>
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <CardTitle>New Transfer</CardTitle>
-                            <CardDescription className="max-w-md mt-1">
-                                Initiate a secure compliant transfer. Select saved contacts to automatically append encrypted compliance data.
-                            </CardDescription>
-                        </div>
-                        <div className="w-32">
-                            <Label className="text-xs text-muted-foreground mb-1 block">Asset</Label>
-                            <Select value={selectedToken} onValueChange={(v) => setSelectedToken(v as TokenType)}>
-                                <SelectTrigger className="h-8">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="USDC">USDC (Mock)</SelectItem>
-                                    <SelectItem value="HSK">Native HSK</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                </CardHeader>
+
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Payment Type Selection */}
-                        <div className="space-y-2">
-                            <Label>Payment Type</Label>
-                            <Select value={paymentType} onValueChange={(v) => setPaymentType(v as PaymentType)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select payment type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="single">Single Transfer</SelectItem>
-                                    <SelectItem value="batch">Batch Transfer (2+ recipients)</SelectItem>
-                                    <SelectItem value="recurring">Recurring Payment</SelectItem>
-                                    <SelectItem value="hsp">HSP Checkout (Demo)</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* Single Transfer Form */}
-                        {paymentType === "single" && (
-                            <div className="space-y-4">
-                                <ContactSelector onSelect={loadContactForSingle} />
-
-                                <div className="space-y-2 p-3 border rounded-lg">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="single-recipient">Recipient Address</Label>
-                                        <Input
-                                            id="single-recipient"
-                                            placeholder="0x..."
-                                            value={singleRecipient.address}
-                                            onChange={(e) => setSingleRecipient({ ...singleRecipient, address: e.target.value })}
-                                            className="font-mono"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="single-amount">Amount ({selectedToken})</Label>
-                                        <Input
-                                            id="single-amount"
-                                            type="number"
-                                            step="0.01"
-                                            placeholder="0.00"
-                                            value={singleRecipient.amount}
-                                            onChange={(e) => setSingleRecipient({ ...singleRecipient, amount: e.target.value })}
-                                        />
-                                    </div>
-                                        <div className="mt-4 pt-3 border-t border-dashed">
-                                            <div className="text-[10px] uppercase font-mono tracking-widest text-muted-foreground mb-3 px-1 flex items-center gap-2">
-                                                <span className="h-1 w-1 bg-muted-foreground rounded-full" />
-                                                Compliance Records (Encrypted)
-                                            </div>
-                                            <div className="grid grid-cols-3 gap-3">
-                                                <div className="space-y-1">
-                                                    <Label htmlFor="single-ref" className="text-[10px] text-muted-foreground px-1 uppercase">Reference ID</Label>
+                        <Tabs value={topLevelTab} onValueChange={(v) => setTopLevelTab(v as "onchain" | "hsp")} className="w-full">
+                            <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="onchain">Onchain Payments</TabsTrigger>
+                                <TabsTrigger value="hsp">HSP Checkout</TabsTrigger>
+                            </TabsList>
+                            
+                            <TabsContent value="onchain" className="space-y-6 mt-6">
+                                <p className="text-sm text-muted-foreground">
+                                    Send payments directly onchain with encrypted compliance data.
+                                </p>
+                                
+                                <Tabs value={onchainTab} onValueChange={(v) => setOnchainTab(v as "single" | "batch" | "recurring")} className="w-full">
+                                    <TabsList className="grid w-full grid-cols-3">
+                                        <TabsTrigger value="single">Single</TabsTrigger>
+                                        <TabsTrigger value="batch">Batch</TabsTrigger>
+                                        <TabsTrigger value="recurring">Recurring</TabsTrigger>
+                                    </TabsList>
+                                    
+                                    <TabsContent value="single" className="space-y-6 mt-6">
+                                        <p className="text-sm text-muted-foreground mb-4">
+                                            Send a payment to a single recipient.
+                                        </p>
+                                        <ContactSelector onSelect={loadContactForSingle} />
+                                        
+                                        <div className="space-y-4 p-4 border rounded-lg">
+                                            <div className="grid grid-cols-[1fr_120px] gap-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="single-recipient" className="text-xs text-muted-foreground">Recipient Address</Label>
                                                     <Input
-                                                        id="single-ref"
-                                                        placeholder="Max 7 char"
-                                                        value={singleRecipient.referenceId || ''}
-                                                        onChange={(e) => setSingleRecipient({ ...singleRecipient, referenceId: e.target.value.substring(0, 7) })}
-                                                        className="h-8 text-xs bg-muted/30"
-                                                        maxLength={7}
+                                                        id="single-recipient"
+                                                        placeholder="0x..."
+                                                        value={singleRecipient.address}
+                                                        onChange={(e) => setSingleRecipient({ ...singleRecipient, address: e.target.value })}
+                                                        className="font-mono text-sm"
                                                     />
                                                 </div>
-                                                <div className="space-y-1">
-                                                    <Label htmlFor="single-jurisdiction" className="text-[10px] text-muted-foreground px-1 uppercase">Jurisdiction</Label>
-                                                    <Select
-                                                        value={singleRecipient.jurisdiction || ''}
-                                                        onValueChange={(value) => setSingleRecipient({ ...singleRecipient, jurisdiction: value })}
-                                                    >
-                                                        <SelectTrigger id="single-jurisdiction" className="w-full h-8 text-xs bg-muted/30">
-                                                            <SelectValue placeholder="Select..." />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {JURISDICTION_OPTIONS.map((j) => (
-                                                                <SelectItem key={j.value} value={j.value}>
-                                                                    {j.label}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <Label htmlFor="single-category" className="text-[10px] text-muted-foreground px-1 uppercase">Category</Label>
-                                                    <Select
-                                                        value={singleRecipient.category || ''}
-                                                        onValueChange={(value) => setSingleRecipient({ ...singleRecipient, category: value })}
-                                                    >
-                                                        <SelectTrigger id="single-category" className="w-full h-8 text-xs bg-muted/30">
-                                                            <SelectValue placeholder="Select..." />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {CATEGORY_OPTIONS.map((c) => (
-                                                                <SelectItem key={c.value} value={c.value}>
-                                                                    {c.label}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
+                                                <div className="space-y-2 relative">
+                                                    <Label htmlFor="single-amount" className="text-xs text-muted-foreground">Amount</Label>
+                                                    <div className="relative">
+                                                        <Input
+                                                            id="single-amount"
+                                                            type="number"
+                                                            step="0.01"
+                                                            placeholder="0.00"
+                                                            value={singleRecipient.amount}
+                                                            onChange={(e) => setSingleRecipient({ ...singleRecipient, amount: e.target.value })}
+                                                            className="pr-12"
+                                                        />
+                                                        <span className="absolute right-3 top-2.5 text-xs text-muted-foreground">USDC</span>
+                                                    </div>
                                                 </div>
                                             </div>
+                                            
+                                            <div className="pt-3 border-t border-dashed">
+                                                <h4 className="text-sm font-medium mb-3">Compliance Records (Encrypted)</h4>
+                                                <div className="grid grid-cols-3 gap-3">
+                                                    <div className="space-y-1">
+                                                        <Label htmlFor="single-ref" className="text-xs text-muted-foreground">Reference ID</Label>
+                                                        <Input
+                                                            id="single-ref"
+                                                            placeholder="Max 7 char"
+                                                            value={singleRecipient.referenceId || ''}
+                                                            onChange={(e) => setSingleRecipient({ ...singleRecipient, referenceId: e.target.value.substring(0, 7) })}
+                                                            className="h-8 text-xs bg-muted/30"
+                                                            maxLength={7}
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <Label htmlFor="single-jurisdiction" className="text-xs text-muted-foreground">Jurisdiction</Label>
+                                                        <Select
+                                                            value={singleRecipient.jurisdiction || ''}
+                                                            onValueChange={(value) => setSingleRecipient({ ...singleRecipient, jurisdiction: value })}
+                                                        >
+                                                            <SelectTrigger id="single-jurisdiction" className="w-full h-8 text-xs bg-muted/30">
+                                                                <SelectValue placeholder="Select..." />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {JURISDICTION_OPTIONS.map((j) => (
+                                                                    <SelectItem key={j.value} value={j.value}>
+                                                                        {j.label}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <Label htmlFor="single-category" className="text-xs text-muted-foreground">Category</Label>
+                                                        <Select
+                                                            value={singleRecipient.category || ''}
+                                                            onValueChange={(value) => setSingleRecipient({ ...singleRecipient, category: value })}
+                                                        >
+                                                            <SelectTrigger id="single-category" className="w-full h-8 text-xs bg-muted/30">
+                                                                <SelectValue placeholder="Select..." />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {CATEGORY_OPTIONS.map((c) => (
+                                                                    <SelectItem key={c.value} value={c.value}>
+                                                                        {c.label}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Show contact name if loaded from contact */}
+                                            {(singleRecipient.contactName) && (
+                                                <div className="flex flex-wrap gap-1 text-xs pt-2">
+                                                    <span className="px-2 py-0.5 bg-primary/10 text-primary rounded">
+                                                        Contact: {singleRecipient.contactName}
+                                                    </span>
+                                                </div>
+                                            )}
                                         </div>
-                                    {/* Show contact name if loaded from contact */}
-                                    {(singleRecipient.contactName) && (
-                                        <div className="flex flex-wrap gap-1 text-xs pt-2">
-                                            <span className="px-2 py-0.5 bg-primary/10 text-primary rounded">
-                                                Contact: {singleRecipient.contactName}
-                                            </span>
+                                    </TabsContent>
+                                    
+                                    <TabsContent value="batch" className="space-y-6 mt-6">
+                                        <p className="text-sm text-muted-foreground mb-4">
+                                            Send payments to multiple recipients in one transaction.
+                                        </p>
+                                        <div className="flex gap-2">
+                                            <div className="flex-1">
+                                                <ContactSelector
+                                                    onSelect={(id) => loadContactForList(id, "batch")}
+                                                    label="Select Contacts"
+                                                />
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                onClick={() => addRecipient("batch")}
+                                            >
+                                                <Plus className="h-4 w-4 mr-2" /> Add Recipient
+                                            </Button>
                                         </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
 
-                        {/* Batch Transfer Form */}
-                        {paymentType === "batch" && (
-                            <div className="space-y-4">
-                                <div className="flex gap-2">
-                                    <div className="flex-1">
-                                        <ContactSelector
-                                            onSelect={(id) => loadContactForList(id, "batch")}
-                                            label="Select Contacts"
-                                        />
+                                        <div className="space-y-4">
+                                            {batchRecipients.map((recipient, index) => (
+                                                <RecipientRow
+                                                    key={`batch-${index}`}
+                                                    recipient={recipient}
+                                                    index={index}
+                                                    type="batch"
+                                                    showRemove={batchRecipients.length > 1 || !!recipient.address || !!recipient.amount}
+                                                    tokenSymbol="USDC"
+                                                    onUpdate={updateRecipient}
+                                                    onRemove={removeRecipient}
+                                                />
+                                            ))}
+                                        </div>
+                                    </TabsContent>
+                                    
+                                    <TabsContent value="recurring" className="space-y-6 mt-6">
+                                        <p className="text-sm text-muted-foreground mb-4">
+                                            Set up automated scheduled payments.
+                                        </p>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="recurring-name" className="text-sm font-medium">Payment Name</Label>
+                                                <Input
+                                                    id="recurring-name"
+                                                    placeholder="e.g., Monthly Payroll"
+                                                    value={recurringName}
+                                                    onChange={(e) => setRecurringName(e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="recurring-start" className="text-sm font-medium">Start Date (Optional)</Label>
+                                                <Input
+                                                    id="recurring-start"
+                                                    type="datetime-local"
+                                                    value={recurringStartDate}
+                                                    onChange={(e) => setRecurringStartDate(e.target.value)}
+                                                    className="w-full"
+                                                />
+                                                <p className="text-xs text-muted-foreground mt-1">Leave empty to start immediately.</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-2">
+                                            <div className="flex-1">
+                                                <ContactSelector
+                                                    onSelect={(id) => loadContactForList(id, "recurring")}
+                                                    label="Select Contacts"
+                                                />
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                onClick={() => addRecipient("recurring")}
+                                            >
+                                                <Plus className="h-4 w-4 mr-2" /> Add Recipient
+                                            </Button>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            {recurringRecipients.map((recipient, index) => (
+                                                <RecipientRow
+                                                    key={`recurring-${index}`}
+                                                    recipient={recipient}
+                                                    index={index}
+                                                    type="recurring"
+                                                    showRemove={recurringRecipients.length > 1 || !!recipient.address || !!recipient.amount}
+                                                    tokenSymbol="USDC"
+                                                    onUpdate={updateRecipient}
+                                                    onRemove={removeRecipient}
+                                                />
+                                            ))}
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label className="text-sm font-medium">Frequency</Label>
+                                                <Select value={recurringInterval} onValueChange={setRecurringInterval}>
+                                                    <SelectTrigger>
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="60">Every Minute (demo)</SelectItem>
+                                                        <SelectItem value="3600">Hourly</SelectItem>
+                                                        <SelectItem value="86400">Daily</SelectItem>
+                                                        <SelectItem value="604800">Weekly</SelectItem>
+                                                        <SelectItem value="2592000">Monthly</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-sm font-medium">Duration</Label>
+                                                <Select value={recurringDuration} onValueChange={setRecurringDuration}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select duration" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="300">5 Minutes (demo)</SelectItem>
+                                                        <SelectItem value="3600">1 Hour</SelectItem>
+                                                        <SelectItem value="86400">1 Day</SelectItem>
+                                                        <SelectItem value="604800">1 Week</SelectItem>
+                                                        <SelectItem value="2592000">1 Month</SelectItem>
+                                                        <SelectItem value="7776000">3 Months</SelectItem>
+                                                        <SelectItem value="15552000">6 Months</SelectItem>
+                                                        <SelectItem value="31536000">1 Year</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            
+                                            <div className="col-span-2 mt-2">
+                                                <Alert variant="default" className="bg-muted/50 text-muted-foreground border-none">
+                                                    <Info className="h-4 w-4" />
+                                                    <AlertDescription className="text-xs">
+                                                        Schedules represent automated payments that trigger regularly until the duration expires.
+                                                    </AlertDescription>
+                                                </Alert>
+                                            </div>
+                                        </div>
+                                    </TabsContent>
+                                </Tabs>
+                            </TabsContent>
+                            
+                            <TabsContent value="hsp" className="space-y-6 mt-6">
+                                <p className="text-sm text-muted-foreground">
+                                    Create a HSP checkout flow . Automatically embeds encrypted compliance records into the payment.
+                                </p>
+                                
+                                <ContactSelector onSelect={loadContactForSingle} />
+                                
+                                <div className="space-y-4 p-4 border rounded-lg">
+                                    <div className="space-y-2 relative max-w-sm">
+                                        <Label htmlFor="hsp-amount" className="text-sm font-medium">Order Amount</Label>
+                                        <div className="relative">
+                                            <Input
+                                                id="hsp-amount"
+                                                type="number"
+                                                step="0.01"
+                                                placeholder="0.00"
+                                                value={singleRecipient.amount}
+                                                onChange={(e) => setSingleRecipient({ ...singleRecipient, amount: e.target.value })}
+                                                className="pr-12"
+                                            />
+                                            <span className="absolute right-3 top-2.5 text-xs text-muted-foreground">USDC</span>
+                                        </div>
                                     </div>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => addRecipient("batch")}
-                                    >
-                                        <Plus className="h-4 w-4 mr-2" /> New Entry
-                                    </Button>
-                                </div>
-
-                                <Label>Recipients</Label>
-                                <div className="space-y-2">
-                                    {batchRecipients.map((recipient, index) => (
-                                        <RecipientRow
-                                            key={`batch-${index}`}
-                                            recipient={recipient}
-                                            index={index}
-                                            type="batch"
-                                            showRemove={batchRecipients.length > 1 || !!recipient.address || !!recipient.amount}
-                                            tokenSymbol={selectedToken}
-                                            onUpdate={updateRecipient}
-                                            onRemove={removeRecipient}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Recurring Payment Form */}
-                        {paymentType === "recurring" && (
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="recurring-name">Payment Name</Label>
-                                    <Input
-                                        id="recurring-name"
-                                        placeholder="e.g., Monthly Payroll"
-                                        value={recurringName}
-                                        onChange={(e) => setRecurringName(e.target.value)}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="recurring-start">Start Date (Optional)</Label>
-                                    <Input
-                                        id="recurring-start"
-                                        type="datetime-local"
-                                        value={recurringStartDate}
-                                        onChange={(e) => setRecurringStartDate(e.target.value)}
-                                        className="w-full"
-                                    />
-                                    <p className="text-xs text-muted-foreground">Leave empty to start immediately.</p>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <div className="flex-1">
-                                        <ContactSelector
-                                            onSelect={(id) => loadContactForList(id, "recurring")}
-                                            label="Select Contacts"
-                                        />
+                                    
+                                    <div className="pt-3 border-t border-dashed">
+                                        <h4 className="text-sm font-medium mb-3">Compliance Records (Encrypted)</h4>
+                                        <div className="grid grid-cols-3 gap-3">
+                                            <div className="space-y-1">
+                                                <Label htmlFor="hsp-ref" className="text-xs text-muted-foreground">Reference ID</Label>
+                                                <Input
+                                                    id="hsp-ref"
+                                                    placeholder="Max 7 char"
+                                                    value={singleRecipient.referenceId || ''}
+                                                    onChange={(e) => setSingleRecipient({ ...singleRecipient, referenceId: e.target.value.substring(0, 7) })}
+                                                    className="h-8 text-xs bg-muted/30"
+                                                    maxLength={7}
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <Label htmlFor="hsp-jurisdiction" className="text-xs text-muted-foreground">Jurisdiction</Label>
+                                                <Select
+                                                    value={singleRecipient.jurisdiction || ''}
+                                                    onValueChange={(value) => setSingleRecipient({ ...singleRecipient, jurisdiction: value })}
+                                                >
+                                                    <SelectTrigger id="hsp-jurisdiction" className="w-full h-8 text-xs bg-muted/30">
+                                                        <SelectValue placeholder="Select..." />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {JURISDICTION_OPTIONS.map((j) => (
+                                                            <SelectItem key={j.value} value={j.value}>
+                                                                {j.label}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <Label htmlFor="hsp-category" className="text-xs text-muted-foreground">Category</Label>
+                                                <Select
+                                                    value={singleRecipient.category || ''}
+                                                    onValueChange={(value) => setSingleRecipient({ ...singleRecipient, category: value })}
+                                                >
+                                                    <SelectTrigger id="hsp-category" className="w-full h-8 text-xs bg-muted/30">
+                                                        <SelectValue placeholder="Select..." />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {CATEGORY_OPTIONS.map((c) => (
+                                                            <SelectItem key={c.value} value={c.value}>
+                                                                {c.label}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => addRecipient("recurring")}
-                                    >
-                                        <Plus className="h-4 w-4 mr-2" /> New Entry
-                                    </Button>
+                                    
+                                    <Alert variant="default" className="bg-muted/50 text-muted-foreground border-none mt-4">
+                                        <Info className="h-4 w-4" />
+                                        <AlertDescription className="text-xs">
+                                            HSP is the HashKey Settlement Protocol. Clicking generate will redirect you to a demo HashKey's checkout page.
+                                        </AlertDescription>
+                                    </Alert>
                                 </div>
+                            </TabsContent>
+                        </Tabs>
 
-
-                                <Label>Recipients</Label>
-                                <div className="space-y-2">
-                                    {recurringRecipients.map((recipient, index) => (
-                                        <RecipientRow
-                                            key={`recurring-${index}`}
-                                            recipient={recipient}
-                                            index={index}
-                                            type="recurring"
-                                            showRemove={recurringRecipients.length > 1 || !!recipient.address || !!recipient.amount}
-                                            tokenSymbol={selectedToken}
-                                            onUpdate={updateRecipient}
-                                            onRemove={removeRecipient}
-                                        />
-                                    ))}
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>Frequency</Label>
-                                        <Select value={recurringInterval} onValueChange={setRecurringInterval}>
-                                            <SelectTrigger>
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="60">Every Minute (demo)</SelectItem>
-                                                <SelectItem value="3600">Hourly</SelectItem>
-                                                <SelectItem value="86400">Daily</SelectItem>
-                                                <SelectItem value="604800">Weekly</SelectItem>
-                                                <SelectItem value="2592000">Monthly</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>Duration</Label>
-                                        <Select value={recurringDuration} onValueChange={setRecurringDuration}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select duration" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="300">5 Minutes (demo)</SelectItem>
-                                                <SelectItem value="3600">1 Hour</SelectItem>
-                                                <SelectItem value="86400">1 Day</SelectItem>
-                                                <SelectItem value="604800">1 Week</SelectItem>
-                                                <SelectItem value="2592000">1 Month</SelectItem>
-                                                <SelectItem value="7776000">3 Months</SelectItem>
-                                                <SelectItem value="15552000">6 Months</SelectItem>
-                                                <SelectItem value="31536000">1 Year</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="col-span-2 text-xs text-muted-foreground mt-2 bg-muted p-2 rounded">
-                                        💡 Tip: Schedules represent automated payments that trigger regularly until the duration expires.
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                                                {/* HSP Checkout Form */}
-                        {paymentType === "hsp" && (
-                            <div className="space-y-4">
-                                <div className="space-y-2 p-3 border rounded-lg">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="hsp-amount">Order Amount ({selectedToken})</Label>
-                                        <Input
-                                            id="hsp-amount"
-                                            type="number"
-                                            step="0.01"
-                                            placeholder="0.00"
-                                            value={singleRecipient.amount}
-                                            onChange={(e) => setSingleRecipient({ ...singleRecipient, amount: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="text-[10px] text-muted-foreground mt-2 bg-muted p-2 rounded">
-                                        💡 Note: HSP is the HashKey Settlement Protocol. Clicking generate will redirect you to HashKey's official checkout page for merchant integration.
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="pt-2 mt-4">
-                            <div className="text-[10px] text-muted-foreground bg-muted p-2  leading-relaxed">
-                                Note: Complyr executes AES-256-GCM encryption locally in your browser to guarantee data privacy. The on-chain contract only stores opaque ciphertexts, ensuring your business compliance metadata remains completely secure and hidden from the public ledger.
-                            </div>
+                        <div className="pt-4 mt-6">
+                            <Alert variant="default" className="bg-muted/50 text-muted-foreground border-none">
+                                <Info className="h-4 w-4" />
+                                <AlertDescription className="text-xs">
+                                    Compliance records are encrypted end-to-end and stored on-chain.
+                                </AlertDescription>
+                            </Alert>
                         </div>
 
-                        <Button type="submit" className="w-full" disabled={isProcessing}>
+                        <Button type="submit" className="w-full mt-6" disabled={isProcessing}>
                             {isProcessing ? (
                                 <>
                                     {transactionStatus !== "Encrypting..." && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -787,7 +836,7 @@ export function PaymentForm({ walletAddress }: PaymentFormProps) {
                                 </>
                             ) : (
                                 transactionStatus === "Complete" ? "Payment Successful" :
-                                (paymentType === "recurring" ? "Create Schedule" : paymentType === "hsp" ? "Generate HSP Link" : "Confirm Payment")
+                                (currentPaymentType === "recurring" ? "Create Schedule" : currentPaymentType === "hsp" ? "Generate HSP Link" : "Confirm Payment")
                             )}
                         </Button>
                     </form>

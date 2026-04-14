@@ -173,34 +173,64 @@ export const useWalletHistory = (walletAddress?: string) => {
     });
 
     const transactions = useMemo(() => {
+        let onChainTxs: TransactionItemProps[] = [];
 
-        if (!query.data?.transactions) return [];
-        return query.data.transactions
-            .map(mapTransactionToItem)
-            .filter((tx: TransactionItemProps) => {
-                // Filter out contract calls (non-transfer EXECUTE transactions)
-                if (tx.type === ActivityType.EXECUTE) {
-                    const isTransfer = tx.details.functionCall === 'Token Transfer' || tx.details.functionCall === 'Native HSK Transfer';
-                    if (!isTransfer) return false;
-                }
+        if (query.data?.transactions) {
+            onChainTxs = query.data.transactions
+                .map(mapTransactionToItem)
+                .filter((tx: TransactionItemProps) => {
+                    // Filter out contract calls (non-transfer EXECUTE transactions)
+                    if (tx.type === ActivityType.EXECUTE) {
+                        const isTransfer = tx.details.functionCall === 'Token Transfer' || tx.details.functionCall === 'Native HSK Transfer';
+                        if (!isTransfer) return false;
+                    }
 
-                // Filter out any internal transfers that happen in the SAME transaction as deployment
-                // (e.g., initialization calls or ghost transactions)
-                const deployedTx = query.data?.deployedTx;
-                if (deployedTx && tx.txHash?.toLowerCase() === deployedTx.toLowerCase() && tx.type !== ActivityType.WALLET_CREATED) {
-                    return false;
-                }
+                    // Filter out any internal transfers that happen in the SAME transaction as deployment
+                    // (e.g., initialization calls or ghost transactions)
+                    const deployedTx = query.data?.deployedTx;
+                    if (deployedTx && tx.txHash?.toLowerCase() === deployedTx.toLowerCase() && tx.type !== ActivityType.WALLET_CREATED) {
+                        return false;
+                    }
 
-                // Filter out ghost transactions before deployment
-                const deployedAt = query.data?.deployedAt ? new Date(Number(query.data.deployedAt) * 1000) : null;
-                if (deployedAt) {
-                    const txDate = new Date(tx.timestamp);
-                    if (tx.type === ActivityType.WALLET_CREATED) return true;
-                    return txDate >= deployedAt;
-                }
+                    // Filter out ghost transactions before deployment
+                    const deployedAt = query.data?.deployedAt ? new Date(Number(query.data.deployedAt) * 1000) : null;
+                    if (deployedAt) {
+                        const txDate = new Date(tx.timestamp);
+                        if (tx.type === ActivityType.WALLET_CREATED) return true;
+                        return txDate >= deployedAt;
+                    }
 
-                return true;
-            });
+                    return true;
+                });
+        }
+
+        // Fetch mock transactions from local storage
+        let mockTxs: TransactionItemProps[] = [];
+        try {
+            if (typeof window !== 'undefined') {
+                const stored = JSON.parse(localStorage.getItem('mockTxHistory') || '[]');
+                mockTxs = stored.map((item: any) => ({
+                    id: item.id,
+                    timestamp: new Date(item.timestamp * 1000).toISOString(),
+                    status: 'success',
+                    title: item.title,
+                    txHash: item.txHash,
+                    type: "HSP Checkout" as any, // Cast to any to bypass strict ActivityType enum
+                    description: `Paid ${item.amount} ${item.currency}`,
+                    details: {
+                        functionCall: 'HSP Gateway',
+                        recipient: '0x0000000000000000000000000000000000000000',
+                    }
+                }));
+            }
+        } catch (e) {
+            console.error("Failed to parse mock tx history", e);
+        }
+
+        const combined = [...onChainTxs, ...mockTxs];
+        
+        // Sort descending by timestamp
+        return combined.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     }, [query.data]);
 
     return {
